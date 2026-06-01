@@ -54,6 +54,15 @@ public class OCDSocketValidator : MonoBehaviour, IXRSelectFilter, IXRHoverFilter
         if (snapAudio != null) snapAudio.Play();
         if (snapParticles != null) snapParticles.Play();
 
+        // Find the highlight script on the item that just snapped in
+        OCDItemHighlight highlightScript = args.interactableObject.transform.GetComponent<OCDItemHighlight>();
+        
+        // If it has the script, disable the glow forever
+        if (highlightScript != null)
+        {
+            highlightScript.DisableHighlight();
+        }
+
         OCDGameManager.Instance.ItemRestored();
     }
 }
