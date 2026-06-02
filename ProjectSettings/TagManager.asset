@@ -9,6 +9,8 @@ TagManager:
   - Tag_Lamp
   - Tag_Pillow
   - Tag_Guitar
+  - Tag_Mug
+  - Tag_Mouse
   layers:
   - Default
   - TransparentFX
