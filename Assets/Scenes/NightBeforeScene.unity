@@ -1624,10 +1624,9 @@ MonoBehaviour:
   playerMovementScript: {fileID: 441087508}
   fadeScreen: {fileID: 1398328637}
   fadeDuration: 3
-  phoneAudio: {fileID: 597950904}
-  phoneScreenLight: {fileID: 914365302}
-  birdAudio: {fileID: 1104749325}
-  birdAnimator: {fileID: 0}
+  phoneAlarm: {fileID: 0}
+  catAudio: {fileID: 0}
+  catAnimator: {fileID: 0}
 --- !u!4 &806942417
 Transform:
   m_ObjectHideFlags: 0
@@ -2899,6 +2898,63 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 563132dc243fef04489bb7392e45ea09, type: 3}
+--- !u!1001 &1414290358
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 62127a8634ab26440894e15502f941bb, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -8.814
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 62127a8634ab26440894e15502f941bb, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.0179
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 62127a8634ab26440894e15502f941bb, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 6.865
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 62127a8634ab26440894e15502f941bb, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 62127a8634ab26440894e15502f941bb, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 62127a8634ab26440894e15502f941bb, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 62127a8634ab26440894e15502f941bb, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 62127a8634ab26440894e15502f941bb, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 62127a8634ab26440894e15502f941bb, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 62127a8634ab26440894e15502f941bb, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 62127a8634ab26440894e15502f941bb, type: 3}
+      propertyPath: m_Name
+      value: mouse
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 62127a8634ab26440894e15502f941bb, type: 3}
 --- !u!1001 &1422326085
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4780,3 +4836,4 @@ SceneRoots:
   - {fileID: 555763982}
   - {fileID: 1002444966}
   - {fileID: 634913893}
+  - {fileID: 1414290358}
