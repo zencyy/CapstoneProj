@@ -17,6 +17,15 @@ public class OCDSocketValidator : MonoBehaviour, IXRSelectFilter, IXRHoverFilter
     // Required by the filter interfaces to allow processing
     public bool canProcess => true;
 
+    [Header("Psychological Mechanics")]
+    [Tooltip("Check this to enable the compulsive re-checking mechanic")]
+    public bool enablePhantomDoubt = true;
+    [Tooltip("The chance (0 to 1) that the item will be rejected")]
+    [Range(0f, 1f)]
+    public float doubtProbability = 1f; // 40% chance to fail
+    public GameObject doubtUICanvas; // Drag your DoubtCanvas here
+    public AudioSource doubtAudio;
+
     void Awake()
     {
         socket = GetComponent<UnityEngine.XR.Interaction.Toolkit.Interactors.XRSocketInteractor>();
@@ -70,30 +79,55 @@ public class OCDSocketValidator : MonoBehaviour, IXRSelectFilter, IXRHoverFilter
 
    private IEnumerator LockItemInPlace(GameObject item)
     {
-        // 1. Wait half a second to let the socket smoothly pull the item in and align it perfectly
+        // 1. Wait a moment to let the socket pull the item in
         yield return new WaitForSeconds(0.5f);
 
-        // 2. Freeze the physical body FIRST so gravity doesn't pull it down
-        Rigidbody rb = item.GetComponent<Rigidbody>();
-        if (rb != null)
+        // 2. Roll the dice to see if an "Intrusive Thought" triggers
+        if (enablePhantomDoubt && Random.value < doubtProbability)
         {
-            rb.isKinematic = true; 
-        }
+            Debug.Log("Intrusive thought triggered! Rejecting item...");
+            
+            // Show the UI and play the stressful sound
+            if (doubtUICanvas != null) doubtUICanvas.SetActive(true);
+            if (doubtAudio != null) doubtAudio.Play();
 
-        // 3. Turn off the Grab script so the player can't pick it up anymore
-        var grabInteractable = item.GetComponent<UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable>();
-        if (grabInteractable != null)
-        {
-            grabInteractable.enabled = false;
-        }
+            // Give the player a second to realize what happened
+            yield return new WaitForSeconds(1.5f);
 
-        // 4. Turn off the Socket itself so it permanently shuts down and doesn't try to grab anything else
-        var socket = GetComponent<UnityEngine.XR.Interaction.Toolkit.Interactors.XRSocketInteractor>();
-        if (socket != null)
-        {
-            socket.enabled = false;
+            // Force the socket to drop the item
+            var socket = GetComponent<UnityEngine.XR.Interaction.Toolkit.Interactors.XRSocketInteractor>();
+            if (socket != null)
+            {
+                // Temporarily disable the socket to drop the item, then turn it back on
+                socket.enabled = false;
+                
+                // Add a tiny physical bump so it visibly pops out of the socket
+                Rigidbody rb = item.GetComponent<Rigidbody>();
+                if (rb != null)
+                {
+                    rb.AddForce(transform.forward * 3f, ForceMode.Impulse);
+                }
+
+                yield return new WaitForSeconds(0.5f);
+                socket.enabled = true; // Ready for the player to try again
+            }
+            
+            // Hide the UI text after they grab it again
+            if (doubtUICanvas != null) doubtUICanvas.SetActive(false);
         }
-        
-        Debug.Log(item.name + " has been permanently locked in its correct place.");
+        else
+        {
+            // 3. SUCCESS! The compulsion is satisfied. Lock it permanently.
+            Rigidbody rb = item.GetComponent<Rigidbody>();
+            if (rb != null) rb.isKinematic = true; 
+
+            var grabInteractable = item.GetComponent<UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable>();
+            if (grabInteractable != null) grabInteractable.enabled = false;
+
+            var socket = GetComponent<UnityEngine.XR.Interaction.Toolkit.Interactors.XRSocketInteractor>();
+            if (socket != null) socket.enabled = false;
+            
+            Debug.Log(item.name + " permanently locked.");
+        }
     }
 }
