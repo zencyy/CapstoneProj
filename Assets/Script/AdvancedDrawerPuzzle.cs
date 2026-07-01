@@ -22,6 +22,7 @@ public class AdvancedDrawerPuzzle : MonoBehaviour
     public UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable drawerGrabScript;
     public AudioSource successAudio;
     public AudioSource errorAudio; 
+    public Transform itemAnchor;
 
     private bool isSolved = false;
     private bool isChecking = false;
@@ -103,16 +104,18 @@ public class AdvancedDrawerPuzzle : MonoBehaviour
                     GameObject item = socket.firstInteractableSelected.transform.gameObject;
 
                     // 1. Freeze the item's physics so gravity doesn't pull it through the drawer floor
-                    Rigidbody itemRb = item.GetComponent<Rigidbody>();
-                    if (itemRb != null) itemRb.isKinematic = true;
-
-                    // 2. Prevent the player from grabbing the item again
+                    // 1. Prevent the player from grabbing the item again
                     var itemGrab = item.GetComponent<UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable>();
                     if (itemGrab != null) itemGrab.enabled = false;
 
-                    // 3. Physically parent (glue) the item to the drawer itself
-                    item.transform.SetParent(this.transform, true);
-                }
+                    // 2. Make sure the item's physics are ACTIVE so the joint can grab it
+                    Rigidbody itemRb = item.GetComponent<Rigidbody>();
+                    if (itemRb != null) itemRb.isKinematic = false; 
+
+                    // 3. Weld the item to the drawer using a FixedJoint! (No stretching ever)
+                    FixedJoint joint = item.AddComponent<FixedJoint>();
+                    joint.connectedBody = this.GetComponent<Rigidbody>();   
+                    }
 
                 // 4. Now it's safe to turn the socket off
                 socket.enabled = false; 
