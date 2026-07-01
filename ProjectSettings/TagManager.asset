@@ -11,6 +11,9 @@ TagManager:
   - Tag_Guitar
   - Tag_Mug
   - Tag_Mouse
+  - Tag_Drawer1
+  - Tag_Drawer2
+  - Tag_Drawer3
   layers:
   - Default
   - TransparentFX
