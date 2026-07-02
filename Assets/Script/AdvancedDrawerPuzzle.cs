@@ -1,20 +1,17 @@
 using UnityEngine;
-
 using System.Collections;
-using TMPro; // Crucial: This lets us control the TextMeshPro UI!
+using System.Collections.Generic; // Required for Lists
+using TMPro;
 
 public class AdvancedDrawerPuzzle : MonoBehaviour
 {
     [Header("Puzzle Configuration")]
-    [Tooltip("Drag the 3 sockets here")]
     public UnityEngine.XR.Interaction.Toolkit.Interactors.XRSocketInteractor[] drawerSockets;
-    
-    [Tooltip("Drag the 3 items here IN THE EXACT SAME ORDER as the sockets above")]
     public GameObject[] expectedItems; 
 
     [Header("Feedback UI")]
-    public GameObject feedbackCanvas; // Drag the DrawerFeedbackCanvas here
-    public TMP_Text feedbackText;     // Drag the FeedbackText here
+    public GameObject feedbackCanvas; 
+    public TMP_Text feedbackText;     
     public string successMessage = "Perfect.";
     public string errorMessage = "Order is incorrect.";
 
@@ -22,61 +19,79 @@ public class AdvancedDrawerPuzzle : MonoBehaviour
     public UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable drawerGrabScript;
     public AudioSource successAudio;
     public AudioSource errorAudio; 
-    public Transform itemAnchor;
 
     private bool isSolved = false;
     private bool isChecking = false;
-    private int lastFilledCount = 0; // Tracks how many items are currently in the drawer
+    private int lastFilledCount = 0; 
+
+    // NEW: We use these lists to mathematically glue the items to the drawer
+    private List<GameObject> gluedItems = new List<GameObject>();
+    private List<Vector3> gluedOffsets = new List<Vector3>();
+    private List<Quaternion> gluedRotations = new List<Quaternion>();
 
     void Start()
     {
         if (drawerGrabScript != null) drawerGrabScript.enabled = false;
         if (feedbackCanvas != null) feedbackCanvas.SetActive(false);
+
+        // Completely freeze the drawer's physics so bumps don't move it
+        Rigidbody rb = GetComponent<Rigidbody>();
+        if (rb != null) rb.isKinematic = true;
     }
 
     void Update()
     {
-        if (isSolved || isChecking) return;
+        if (isSolved) return; 
 
-        // Count how many sockets currently have an item in them
         int filledSockets = 0;
         foreach (var socket in drawerSockets)
         {
             if (socket.hasSelection) filledSockets++;
         }
-        
-        // This stops the console from lagging by only printing when the number actually changes
-        if (filledSockets != lastFilledCount) 
-        {
-            Debug.Log("Sockets filled right now: " + filledSockets + " / " + drawerSockets.Length);
-        }
 
-        // Only evaluate on the exact moment the 3rd item is placed
-        if (filledSockets == drawerSockets.Length && lastFilledCount < drawerSockets.Length)
+        if (!isChecking)
         {
-            StartCoroutine(EvaluatePuzzle());
-        }
-        // If they realize they are wrong and pull an item out, hide the error UI
-        else if (filledSockets < drawerSockets.Length && feedbackCanvas.activeSelf)
-        {
-            feedbackCanvas.SetActive(false);
+            if (filledSockets == drawerSockets.Length && lastFilledCount < drawerSockets.Length)
+            {
+                StartCoroutine(EvaluatePuzzle());
+            }
+            else if (filledSockets < drawerSockets.Length && feedbackCanvas != null && feedbackCanvas.activeSelf)
+            {
+                feedbackCanvas.SetActive(false);
+            }
         }
 
         lastFilledCount = filledSockets;
     }
 
+    // NEW: This forces the items to follow the drawer flawlessly, completely bypassing Unity Physics
+    void LateUpdate()
+    {
+        for (int i = 0; i < gluedItems.Count; i++)
+        {
+            if (gluedItems[i] != null)
+            {
+                gluedItems[i].transform.position = transform.TransformPoint(gluedOffsets[i]);
+                gluedItems[i].transform.rotation = transform.rotation * gluedRotations[i];
+            }
+        }
+    }
+
     private IEnumerator EvaluatePuzzle()
     {
         isChecking = true;
-        
-        // Wait half a second to let the final item snap into place visually
         yield return new WaitForSeconds(0.5f); 
 
         bool isCorrect = true;
 
-        // Check if every item matches the expected slot
         for (int i = 0; i < drawerSockets.Length; i++)
         {
+            if (!drawerSockets[i].hasSelection)
+            {
+                isCorrect = false;
+                break;
+            }
+
             GameObject itemInSocket = drawerSockets[i].firstInteractableSelected.transform.gameObject;
             
             if (itemInSocket != expectedItems[i])
@@ -86,47 +101,86 @@ public class AdvancedDrawerPuzzle : MonoBehaviour
             }
         }
 
-        // Show the UI Canvas
         if (feedbackCanvas != null) feedbackCanvas.SetActive(true);
 
         if (isCorrect)
         {
-            // SUCCESS
             isSolved = true;
             if (feedbackText != null) feedbackText.text = successMessage;
             if (successAudio != null) successAudio.Play();
             
-            // Permanently lock the items AND attach them to the drawer so they don't fall out
             foreach (var socket in drawerSockets) 
             { 
                 if (socket.hasSelection)
                 {
                     GameObject item = socket.firstInteractableSelected.transform.gameObject;
 
-                    // 1. Freeze the item's physics so gravity doesn't pull it through the drawer floor
-                    // 1. Prevent the player from grabbing the item again
+                    // 1. Destroy XR Grab so the system immediately forgets about the item
                     var itemGrab = item.GetComponent<UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable>();
-                    if (itemGrab != null) itemGrab.enabled = false;
+                    if (itemGrab != null) Destroy(itemGrab);
 
-                    // 2. Make sure the item's physics are ACTIVE so the joint can grab it
+                    // 2. Destroy Rigidbody so it cannot fall down or explode
                     Rigidbody itemRb = item.GetComponent<Rigidbody>();
-                    if (itemRb != null) itemRb.isKinematic = false; 
+                    if (itemRb != null) Destroy(itemRb);
 
-                    // 3. Weld the item to the drawer using a FixedJoint! (No stretching ever)
-                    FixedJoint joint = item.AddComponent<FixedJoint>();
-                    joint.connectedBody = this.GetComponent<Rigidbody>();   
-                    }
+                    // 3. Turn off colliders so they don't clip into the drawer
+                    Collider[] colliders = item.GetComponentsInChildren<Collider>();
+                    foreach (Collider col in colliders) col.enabled = false;
 
-                // 4. Now it's safe to turn the socket off
+                    // 4. Detach from ALL parents. This guarantees the drawer's weird scale never stretches the item!
+                    item.transform.SetParent(null, true);
+
+                    // 5. Calculate and save the exact distance and angle from the drawer
+                    gluedItems.Add(item);
+                    gluedOffsets.Add(transform.InverseTransformPoint(item.transform.position));
+                    gluedRotations.Add(Quaternion.Inverse(transform.rotation) * item.transform.rotation);
+                }
+
+                // Safely turn off the socket
                 socket.enabled = false; 
             }
             
-            // Unlock drawer so the player can push it shut
+            // Unfreeze the drawer's physics so the player can push it along the track
+            Rigidbody drawerRb = GetComponent<Rigidbody>();
+            if (drawerRb != null) drawerRb.isKinematic = false;
+
+            // Unlock drawer so the player can grab it
             if (drawerGrabScript != null) drawerGrabScript.enabled = true; 
 
-            Debug.Log("Puzzle Solved! Items glued down and Drawer unlocked.");
+            Debug.Log("Puzzle Solved! Items mathematically glued to the drawer.");
+        }
+        else
+        {
+            if (feedbackText != null) feedbackText.text = errorMessage;
+            if (errorAudio != null) errorAudio.Play();
         }
         
         isChecking = false;
+    }
+}
+public class ItemSticky : MonoBehaviour
+{
+    public Transform drawer;
+    private Vector3 positionOffset;
+    private Quaternion rotationOffset;
+
+    void Start()
+    {
+        // The exact millisecond this is attached, remember the math distance from the drawer
+        if (drawer != null)
+        {
+            positionOffset = drawer.InverseTransformPoint(transform.position);
+            rotationOffset = Quaternion.Inverse(drawer.rotation) * transform.rotation;
+        }
+    }
+
+    void LateUpdate()
+    {
+        // Every single frame, force the item to maintain that exact distance
+        if (drawer != null)
+        {
+            transform.position = drawer.TransformPoint(positionOffset);
+            transform.rotation = drawer.rotation * rotationOffset;
+        }
     }
 }
