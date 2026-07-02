@@ -7,8 +7,8 @@ public class DrawerSlider : MonoBehaviour
     public Transform closedTarget;
 
     [Header("Locking")]
-    [Tooltip("How close it needs to get to the target to lock (e.g., 0.05 meters)")]
-    public float lockDistance = 0.05f;
+    [Tooltip("How close it needs to get to the target to snap and lock (e.g., 0.08 meters)")]
+    public float lockDistance = 0.08f;
     public AudioSource slamSound;
 
     private Vector3 startPos;
@@ -45,17 +45,32 @@ public class DrawerSlider : MonoBehaviour
         float distanceToTarget = Vector3.Distance(transform.position, closedTarget.position);
         if (distanceToTarget <= lockDistance)
         {
-            isLocked = true;
-            grabScript.enabled = false; // Turn off the VR grab
-            if (rb != null) rb.isKinematic = true; // Turn off physics so it freezes
-
-            // Snap perfectly into the final closed position
-            transform.position = closedTarget.position;
-
-            // Play a satisfying shutting sound if you have one
-            if (slamSound != null) slamSound.Play();
-
-            Debug.Log("Drawer slammed shut and permanently locked!");
+            LockDrawer();
         }
+    }
+
+    private void LockDrawer()
+    {
+        isLocked = true;
+        
+        // 1. Disable the VR grab so the player's hand immediately lets go
+        grabScript.enabled = false;
+
+        // 2. Freeze the physics so it stops moving completely
+        if (rb != null)
+        {
+            rb.isKinematic = true;
+            rb.linearVelocity = Vector3.zero;
+        }
+
+        // 3. Teleport it that last tiny fraction of an inch for a perfect, flush close!
+        // We snap BOTH position and rotation so it perfectly aligns with the target corner
+        transform.position = closedTarget.position;
+        transform.rotation = closedTarget.rotation; 
+
+        // Play a satisfying shutting sound if you have one
+        if (slamSound != null) slamSound.Play();
+
+        Debug.Log("Drawer snapped flush into position and locked forever!");
     }
 }
