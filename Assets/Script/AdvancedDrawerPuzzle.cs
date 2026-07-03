@@ -108,7 +108,13 @@ public class AdvancedDrawerPuzzle : MonoBehaviour
             isSolved = true;
             if (feedbackText != null) feedbackText.text = successMessage;
             if (successAudio != null) successAudio.Play();
-            
+            if (OCDGameManager.Instance != null)
+            {
+                for (int i = 0; i < drawerSockets.Length; i++)
+                {
+                    OCDGameManager.Instance.ItemRestored();
+                }
+            }
             foreach (var socket in drawerSockets) 
             { 
                 if (socket.hasSelection)

@@ -22,8 +22,10 @@ public class OCDSocketValidator : MonoBehaviour, IXRSelectFilter, IXRHoverFilter
 
     [Header("Psychological Mechanics")]
     public bool enablePhantomDoubt = true;
-    [Range(0f, 1f)]
-    public float doubtProbability = 1f; 
+    
+    [Tooltip("The socket has a 1-in-X chance to doubt. (e.g., 3 means a 1 in 3 chance)")]
+    public int chanceToDoubt = 3; 
+    
     public GameObject doubtUICanvas; 
     public AudioSource doubtAudio;
 
@@ -37,22 +39,15 @@ public class OCDSocketValidator : MonoBehaviour, IXRSelectFilter, IXRHoverFilter
         socket.selectFilters.Add(this);
         socket.hoverFilters.Add(this);
         
-        // ONLY listen for the snap if this is NOT a puzzle drawer socket
-        if (!isDrawerSocket)
-        {
-            socket.selectEntered.AddListener(OnItemSnapped);
-        }
+        // ALWAYS listen for the snap so we can play audio and particles!
+        socket.selectEntered.AddListener(OnItemSnapped);
     }
 
     void OnDisable()
     {
         socket.selectFilters.Remove(this);
         socket.hoverFilters.Remove(this);
-        
-        if (!isDrawerSocket)
-        {
-            socket.selectEntered.RemoveListener(OnItemSnapped);
-        }
+        socket.selectEntered.RemoveListener(OnItemSnapped);
     }
 
     public bool Process(UnityEngine.XR.Interaction.Toolkit.Interactors.IXRSelectInteractor interactor, UnityEngine.XR.Interaction.Toolkit.Interactables.IXRSelectInteractable interactable)
@@ -65,15 +60,19 @@ public class OCDSocketValidator : MonoBehaviour, IXRSelectFilter, IXRHoverFilter
         return interactable.transform.CompareTag(requiredTag);
     }
 
-    private void OnItemSnapped(SelectEnterEventArgs args)
+   private void OnItemSnapped(SelectEnterEventArgs args)
     {
+        // 1. Always play the feedback effects regardless of socket type
         if (snapAudio != null) snapAudio.Play();
         if (snapParticles != null) snapParticles.Play();
 
         OCDItemHighlight highlightScript = args.interactableObject.transform.GetComponent<OCDItemHighlight>();
         if (highlightScript != null) highlightScript.DisableHighlight();
 
-        // Safe check for GameManager
+        // 2. If this is a puzzle socket, STOP here. Let the Puzzle Manager handle the locking.
+        if (isDrawerSocket) return;
+
+        // 3. If it is a normal standalone socket, proceed with the GameManager and doubt mechanics
         if (OCDGameManager.Instance != null) OCDGameManager.Instance.ItemRestored();
 
         GameObject snappedItem = args.interactableObject.transform.gameObject;
@@ -84,7 +83,9 @@ public class OCDSocketValidator : MonoBehaviour, IXRSelectFilter, IXRHoverFilter
     {
         yield return new WaitForSeconds(0.5f);
 
-        if (enablePhantomDoubt && Random.value < doubtProbability)
+        bool randomDoubtTrigger = Random.Range(0, chanceToDoubt) == 0;
+
+        if (enablePhantomDoubt && randomDoubtTrigger)
         {
             Debug.Log("Intrusive thought triggered! Rejecting item...");
             if (doubtUICanvas != null) doubtUICanvas.SetActive(true);
