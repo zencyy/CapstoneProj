@@ -9,7 +9,7 @@ public class OCDSocketValidator : MonoBehaviour, IXRSelectFilter, IXRHoverFilter
     [Tooltip("The exact tag of the object that belongs here.")]
     public string requiredTag;
     
-    [Tooltip("CHECK THIS BOX if this socket is part of the Drawer Puzzle so it doesn't auto-lock!")]
+    [Tooltip("CHECK THIS BOX if this socket is part of a Puzzle (Drawer/Books) so it doesn't auto-lock!")]
     public bool isDrawerSocket = false;
 
     [Header("Feedback")]
@@ -23,11 +23,14 @@ public class OCDSocketValidator : MonoBehaviour, IXRSelectFilter, IXRHoverFilter
     [Header("Psychological Mechanics")]
     public bool enablePhantomDoubt = true;
     
-    [Tooltip("The socket has a 1-in-X chance to doubt. (e.g., 3 means a 1 in 3 chance)")]
-    public int chanceToDoubt = 3; 
+    [Tooltip("How many times will the socket reject the item before accepting it?")]
+    public int maxDoubts = 3; 
     
     public GameObject doubtUICanvas; 
     public AudioSource doubtAudio;
+
+    // We use this to track how many times this specific socket has doubted
+    private int currentDoubtCount = 0;
 
     void Awake()
     {
@@ -38,8 +41,6 @@ public class OCDSocketValidator : MonoBehaviour, IXRSelectFilter, IXRHoverFilter
     {
         socket.selectFilters.Add(this);
         socket.hoverFilters.Add(this);
-        
-        // ALWAYS listen for the snap so we can play audio and particles!
         socket.selectEntered.AddListener(OnItemSnapped);
     }
 
@@ -62,61 +63,73 @@ public class OCDSocketValidator : MonoBehaviour, IXRSelectFilter, IXRHoverFilter
 
    private void OnItemSnapped(SelectEnterEventArgs args)
     {
-        // 1. Always play the feedback effects regardless of socket type
+        // 1. Play standard feedback
         if (snapAudio != null) snapAudio.Play();
         if (snapParticles != null) snapParticles.Play();
 
         OCDItemHighlight highlightScript = args.interactableObject.transform.GetComponent<OCDItemHighlight>();
         if (highlightScript != null) highlightScript.DisableHighlight();
 
-        // 2. If this is a puzzle socket, STOP here. Let the Puzzle Manager handle the locking.
-        if (isDrawerSocket) return;
-
-        // 3. If it is a normal standalone socket, proceed with the GameManager and doubt mechanics
-        if (OCDGameManager.Instance != null) OCDGameManager.Instance.ItemRestored();
-
         GameObject snappedItem = args.interactableObject.transform.gameObject;
-        StartCoroutine(LockItemInPlace(snappedItem));
-    }
 
-   private IEnumerator LockItemInPlace(GameObject item)
-    {
-        yield return new WaitForSeconds(0.5f);
-
-        bool randomDoubtTrigger = Random.Range(0, chanceToDoubt) == 0;
-
-        if (enablePhantomDoubt && randomDoubtTrigger)
+        // 2. CHECK DOUBT: Has the player done it enough times yet?
+        if (enablePhantomDoubt && currentDoubtCount < maxDoubts)
         {
-            Debug.Log("Intrusive thought triggered! Rejecting item...");
-            if (doubtUICanvas != null) doubtUICanvas.SetActive(true);
-            if (doubtAudio != null) doubtAudio.Play();
-            yield return new WaitForSeconds(1.5f);
-
-            var socketComponent = GetComponent<UnityEngine.XR.Interaction.Toolkit.Interactors.XRSocketInteractor>();
-            if (socketComponent != null)
-            {
-                socketComponent.enabled = false;
-                Rigidbody rb = item.GetComponent<Rigidbody>();
-                if (rb != null) rb.AddForce(transform.forward * 3f, ForceMode.Impulse);
-
-                yield return new WaitForSeconds(0.5f);
-                socketComponent.enabled = true; 
-            }
-            
-            if (doubtUICanvas != null) doubtUICanvas.SetActive(false);
+            StartCoroutine(TriggerDoubt(snappedItem));
         }
         else
         {
-            Rigidbody rb = item.GetComponent<Rigidbody>();
-            if (rb != null) rb.isKinematic = true; 
+            // 3. SUCCESSFUL PLACEMENT
+            if (isDrawerSocket) return;
 
-            var grabInteractable = item.GetComponent<UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable>();
-            if (grabInteractable != null) grabInteractable.enabled = false;
-
-            var socketComponent = GetComponent<UnityEngine.XR.Interaction.Toolkit.Interactors.XRSocketInteractor>();
-            if (socketComponent != null) socketComponent.enabled = false;
+            if (OCDGameManager.Instance != null) OCDGameManager.Instance.ItemRestored();
             
-            Debug.Log(item.name + " permanently locked.");
+            // FIX: Start the Coroutine instead of calling it directly!
+            StartCoroutine(LockItemPermanently(snappedItem));
         }
+    }
+
+    private IEnumerator TriggerDoubt(GameObject item)
+    {
+        // Add to the doubt counter
+        currentDoubtCount++;
+        
+        yield return new WaitForSeconds(0.5f);
+
+        Debug.Log($"Intrusive thought triggered! Rejecting item... ({currentDoubtCount}/{maxDoubts})");
+        
+        if (doubtUICanvas != null) doubtUICanvas.SetActive(true);
+        if (doubtAudio != null) doubtAudio.Play();
+        
+        yield return new WaitForSeconds(1.5f);
+
+        // Safely disable the socket to push the item out
+        if (socket != null)
+        {
+            socket.enabled = false;
+            Rigidbody rb = item.GetComponent<Rigidbody>();
+            if (rb != null) rb.AddForce(transform.forward * 4.5f, ForceMode.Impulse);
+
+            yield return new WaitForSeconds(0.5f);
+            socket.enabled = true; 
+        }
+        
+        if (doubtUICanvas != null) doubtUICanvas.SetActive(false);
+    }
+
+    private IEnumerator LockItemPermanently(GameObject item)
+    {
+        // FIX: Give the XR socket 0.5 seconds to smoothly slide the item into perfect position
+        yield return new WaitForSeconds(0.5f);
+
+        Rigidbody rb = item.GetComponent<Rigidbody>();
+        if (rb != null) rb.isKinematic = true; 
+
+        var grabInteractable = item.GetComponent<UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable>();
+        if (grabInteractable != null) grabInteractable.enabled = false;
+
+        if (socket != null) socket.enabled = false;
+        
+        Debug.Log(item.name + " permanently locked.");
     }
 }

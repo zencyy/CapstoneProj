@@ -6,99 +6,154 @@ public class PhoneAlarmController : MonoBehaviour
     [Header("References")]
     public AudioSource phoneAudio;
     public GameObject phoneScreenLight;
-    public GameObject uiPromptCanvas; // Drag your new PhonePromptCanvas here
+    public GameObject uiPromptCanvas; 
     
+    [Header("Reassurance Gallery UI")]
+    public GameObject photoPromptCanvas; 
+    
+    [Tooltip("Add all your photo UI canvases here in the order you want them to appear.")]
+    public GameObject[] reassurancePhotos; 
+
     [Header("Gaze Settings")]
-    [Tooltip("How close the phone needs to be to the center of the screen to count as 'looking' (in degrees)")]
     public float lookThreshold = 25f; 
-    [Tooltip("How close the player needs to be to interact (in meters)")]
     public float maxDistance = 3f;
     
     [Header("Input")]
-    [Tooltip("The button used to turn off the alarm (e.g., XRI LeftHand/Primary Button)")]
-    public InputActionReference turnOffButton;
+    public InputActionReference interactButton;
 
-    // This lets the CutsceneManager know if it's still ringing
     [HideInInspector]
     public bool isRinging = false; 
     
     private Transform playerCamera;
     private bool isLookingAtPhone = false;
+    private bool alarmDismissed = false;
+    
+    // -1 means the gallery is currently closed. 0 is the first photo, 1 is the second, etc.
+    private int currentPhotoIndex = -1; 
 
     void Start()
     {
         if (uiPromptCanvas != null) uiPromptCanvas.SetActive(false);
+        if (photoPromptCanvas != null) photoPromptCanvas.SetActive(false);
+        
+        // Ensure ALL photos are completely hidden when the game starts
+        foreach (GameObject photo in reassurancePhotos)
+        {
+            if (photo != null) photo.SetActive(false);
+        }
+        
         if (Camera.main != null) playerCamera = Camera.main.transform;
     }
 
     void OnEnable()
     {
-        // Listen for the button press
-        if (turnOffButton != null)
+        if (interactButton != null)
         {
-            turnOffButton.action.Enable();
-            turnOffButton.action.started += OnButtonPressed;
+            interactButton.action.Enable();
+            interactButton.action.started += OnButtonPressed;
         }
     }
 
     void OnDisable()
     {
-        if (turnOffButton != null)
+        if (interactButton != null)
         {
-            turnOffButton.action.started -= OnButtonPressed;
+            interactButton.action.started -= OnButtonPressed;
         }
     }
 
     public void TriggerAlarm()
     {
         isRinging = true;
+        alarmDismissed = false;
+        
         if (phoneAudio != null) phoneAudio.Play();
         if (phoneScreenLight != null) phoneScreenLight.SetActive(true);
     }
 
     void Update()
     {
-        // If the alarm is off, hide the UI and do nothing
-        if (!isRinging || playerCamera == null) 
-        {
-            if (uiPromptCanvas != null && uiPromptCanvas.activeSelf) uiPromptCanvas.SetActive(false);
-            return;
-        }
+        if (playerCamera == null) return;
 
-        // Calculate the direction and distance from the camera to the phone
         Vector3 directionToPhone = (transform.position - playerCamera.position).normalized;
         float distance = Vector3.Distance(playerCamera.position, transform.position);
-        
-        // Calculate the angle between where the player is looking and where the phone is
         float angle = Vector3.Angle(playerCamera.forward, directionToPhone);
 
-        // If the angle is small, they are looking directly at it!
         isLookingAtPhone = (angle < lookThreshold && distance < maxDistance);
 
-        // Show or hide the UI based on whether they are looking
-        if (uiPromptCanvas != null)
+        // STATE 1: Ringing
+        if (isRinging)
         {
-            uiPromptCanvas.SetActive(isLookingAtPhone);
+            if (uiPromptCanvas != null) uiPromptCanvas.SetActive(isLookingAtPhone);
+            if (photoPromptCanvas != null) photoPromptCanvas.SetActive(false);
+        }
+        // STATE 2: Alarm off, Gallery Closed
+        else if (alarmDismissed && currentPhotoIndex == -1) 
+        {
+            if (uiPromptCanvas != null) uiPromptCanvas.SetActive(false);
+            if (photoPromptCanvas != null) photoPromptCanvas.SetActive(isLookingAtPhone);
+        }
+        // STATE 3: Reading Photos
+        else
+        {
+            if (uiPromptCanvas != null) uiPromptCanvas.SetActive(false);
+            if (photoPromptCanvas != null) photoPromptCanvas.SetActive(false);
         }
     }
 
     private void OnButtonPressed(InputAction.CallbackContext context)
     {
-        // Only turn it off if it's currently ringing AND they are looking right at it
-        if (isRinging && isLookingAtPhone)
+        // Notice the new check here: we let them click if they are looking at the phone, 
+        // OR if the gallery is already open (so they don't have to perfectly stare at the phone to flip pages)
+        if (isLookingAtPhone || currentPhotoIndex != -1)
         {
-            TurnOffAlarm();
+            if (isRinging)
+            {
+                TurnOffAlarm();
+            }
+            else if (alarmDismissed)
+            {
+                CyclePhotos();
+            }
         }
     }
 
     private void TurnOffAlarm()
     {
         isRinging = false;
+        alarmDismissed = true; 
         
         if (phoneAudio != null) phoneAudio.Stop();
         if (phoneScreenLight != null) phoneScreenLight.SetActive(false);
-        if (uiPromptCanvas != null) uiPromptCanvas.SetActive(false);
-        
-        Debug.Log("Player successfully silenced the phone!");
+    }
+
+    private void CyclePhotos()
+    {
+        // 1. If a photo is currently open, hide it
+        if (currentPhotoIndex >= 0 && currentPhotoIndex < reassurancePhotos.Length)
+        {
+            if (reassurancePhotos[currentPhotoIndex] != null)
+            {
+                reassurancePhotos[currentPhotoIndex].SetActive(false);
+            }
+        }
+
+        // 2. Move to the next photo in line
+        currentPhotoIndex++;
+
+        // 3. Did we run out of photos?
+        if (currentPhotoIndex < reassurancePhotos.Length)
+        {
+            // We have another photo! Show it.
+            if (reassurancePhotos[currentPhotoIndex] != null)
+            {
+                reassurancePhotos[currentPhotoIndex].SetActive(true);
+            }
+        }
+        else
+        {
+            // We reached the end of the list. Close the gallery.
+            currentPhotoIndex = -1;
+        }
     }
 }
