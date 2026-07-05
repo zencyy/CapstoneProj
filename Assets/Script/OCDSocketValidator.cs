@@ -17,24 +17,32 @@ public class OCDSocketValidator : MonoBehaviour, IXRSelectFilter, IXRHoverFilter
     public ParticleSystem snapParticles;
 
     private UnityEngine.XR.Interaction.Toolkit.Interactors.XRSocketInteractor socket;
-
     public bool canProcess => true;
 
     [Header("Psychological Mechanics")]
     public bool enablePhantomDoubt = true;
     
-    [Tooltip("How many times will the socket reject the item before accepting it?")]
-    public int maxDoubts = 3; 
-    
-    public GameObject doubtUICanvas; 
-    public AudioSource doubtAudio;
-
-    // We use this to track how many times this specific socket has doubted
+    // The script will randomly pick 0, 1, or 2 when the game starts
+    private int randomizedMaxDoubts; 
     private int currentDoubtCount = 0;
+
+    [Header("First Doubt Sequence")]
+    public GameObject doubt1UICanvas; 
+    public AudioSource doubt1Audio;
+
+    [Header("Second Doubt Sequence")]
+    public GameObject doubt2UICanvas; 
+    public AudioSource doubt2Audio;
 
     void Awake()
     {
         socket = GetComponent<UnityEngine.XR.Interaction.Toolkit.Interactors.XRSocketInteractor>();
+    }
+
+    void Start()
+    {
+        // Randomly decide how many times this specific socket will doubt (0, 1, or 2)
+        randomizedMaxDoubts = Random.Range(0, 3);
     }
 
     void OnEnable()
@@ -61,9 +69,8 @@ public class OCDSocketValidator : MonoBehaviour, IXRSelectFilter, IXRHoverFilter
         return interactable.transform.CompareTag(requiredTag);
     }
 
-   private void OnItemSnapped(SelectEnterEventArgs args)
+    private void OnItemSnapped(SelectEnterEventArgs args)
     {
-        // 1. Play standard feedback
         if (snapAudio != null) snapAudio.Play();
         if (snapParticles != null) snapParticles.Play();
 
@@ -72,54 +79,80 @@ public class OCDSocketValidator : MonoBehaviour, IXRSelectFilter, IXRHoverFilter
 
         GameObject snappedItem = args.interactableObject.transform.gameObject;
 
-        // 2. CHECK DOUBT: Has the player done it enough times yet?
-        if (enablePhantomDoubt && currentDoubtCount < maxDoubts)
+        // Check against our randomized max limit instead of a hardcoded number
+        if (enablePhantomDoubt && currentDoubtCount < randomizedMaxDoubts)
         {
             StartCoroutine(TriggerDoubt(snappedItem));
         }
         else
         {
-            // 3. SUCCESSFUL PLACEMENT
             if (isDrawerSocket) return;
 
             if (OCDGameManager.Instance != null) OCDGameManager.Instance.ItemRestored();
             
-            // FIX: Start the Coroutine instead of calling it directly!
             StartCoroutine(LockItemPermanently(snappedItem));
         }
     }
 
     private IEnumerator TriggerDoubt(GameObject item)
     {
-        // Add to the doubt counter
         currentDoubtCount++;
         
         yield return new WaitForSeconds(0.5f);
 
-        Debug.Log($"Intrusive thought triggered! Rejecting item... ({currentDoubtCount}/{maxDoubts})");
+        Debug.Log($"Intrusive thought triggered! Rejecting item... ({currentDoubtCount}/{randomizedMaxDoubts})");
         
-        if (doubtUICanvas != null) doubtUICanvas.SetActive(true);
-        if (doubtAudio != null) doubtAudio.Play();
+        // Determine which UI and Audio to play based on which doubt this is
+        GameObject activeCanvas = null;
+        AudioSource activeAudio = null;
+
+        if (currentDoubtCount == 1)
+        {
+            activeCanvas = doubt1UICanvas;
+            activeAudio = doubt1Audio;
+        }
+        else if (currentDoubtCount == 2)
+        {
+            activeCanvas = doubt2UICanvas;
+            activeAudio = doubt2Audio;
+        }
+
+        // Turn on the selected UI and Audio
+        if (activeCanvas != null) activeCanvas.SetActive(true);
+        if (activeAudio != null) activeAudio.Play();
         
-        yield return new WaitForSeconds(1.5f);
+        // Calculate the exact length of the voiceover (default to 1.5s if missing)
+        float waitTime = 1.5f;
+        if (activeAudio != null && activeAudio.clip != null)
+        {
+            waitTime = activeAudio.clip.length;
+        }
+
+        // Wait for the voiceover to completely finish before spitting the item out
+        yield return new WaitForSeconds(waitTime);
 
         // Safely disable the socket to push the item out
         if (socket != null)
         {
             socket.enabled = false;
             Rigidbody rb = item.GetComponent<Rigidbody>();
-            if (rb != null) rb.AddForce(transform.forward * 4.5f, ForceMode.Impulse);
+            
+            if (rb != null) 
+            {
+                // Pop the item slightly up and forward
+                rb.AddForce(Vector3.up * 1.5f + transform.forward * 3.5f, ForceMode.Impulse);
+            }
 
             yield return new WaitForSeconds(0.5f);
             socket.enabled = true; 
         }
         
-        if (doubtUICanvas != null) doubtUICanvas.SetActive(false);
+        // Turn the UI off again
+        if (activeCanvas != null) activeCanvas.SetActive(false);
     }
 
     private IEnumerator LockItemPermanently(GameObject item)
     {
-        // FIX: Give the XR socket 0.5 seconds to smoothly slide the item into perfect position
         yield return new WaitForSeconds(0.5f);
 
         Rigidbody rb = item.GetComponent<Rigidbody>();
