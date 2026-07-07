@@ -1,18 +1,27 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using TMPro; 
+using System.Collections; // Required for Coroutines
+
 
 public class PhoneAlarmController : MonoBehaviour
 {
-    [Header("References")]
+    [Header("Core References")]
     public AudioSource phoneAudio;
     public GameObject phoneScreenLight;
     public GameObject uiPromptCanvas; 
     
     [Header("Reassurance Gallery UI")]
     public GameObject photoPromptCanvas; 
-    
-    [Tooltip("Add all your photo UI canvases here in the order you want them to appear.")]
-    public GameObject[] reassurancePhotos; 
+    public TMP_Text subtitleDisplay;
+    public AudioSource voiceOverAudioSource;
+
+    [Tooltip("Add your photo canvases, subtitles, and voiceovers here in order.")]
+    public PhotoClue[] reassurancePhotos; 
+
+    [Header("Alarm Settings")]
+    [Tooltip("How many seconds after the scene starts before the phone rings?")]
+    public float timeBeforeAlarm = 5.0f;
 
     [Header("Gaze Settings")]
     public float lookThreshold = 25f; 
@@ -28,21 +37,26 @@ public class PhoneAlarmController : MonoBehaviour
     private bool isLookingAtPhone = false;
     private bool alarmDismissed = false;
     
-    // -1 means the gallery is currently closed. 0 is the first photo, 1 is the second, etc.
     private int currentPhotoIndex = -1; 
+    
+    // NEW: We use this to track the subtitle timer so we can stop it if they click 'Next' early
+    private Coroutine subtitleTimerCoroutine;
 
     void Start()
     {
         if (uiPromptCanvas != null) uiPromptCanvas.SetActive(false);
         if (photoPromptCanvas != null) photoPromptCanvas.SetActive(false);
+        if (subtitleDisplay != null) subtitleDisplay.text = "";
         
-        // Ensure ALL photos are completely hidden when the game starts
-        foreach (GameObject photo in reassurancePhotos)
+        foreach (PhotoClue clue in reassurancePhotos)
         {
-            if (photo != null) photo.SetActive(false);
+            if (clue.photoCanvas != null) clue.photoCanvas.SetActive(false);
         }
         
         if (Camera.main != null) playerCamera = Camera.main.transform;
+
+        // Start the alarm timer automatically
+        Invoke("TriggerAlarm", timeBeforeAlarm);
     }
 
     void OnEnable()
@@ -62,6 +76,7 @@ public class PhoneAlarmController : MonoBehaviour
         }
     }
 
+    [ContextMenu("Test Trigger Alarm")]
     public void TriggerAlarm()
     {
         isRinging = true;
@@ -81,19 +96,16 @@ public class PhoneAlarmController : MonoBehaviour
 
         isLookingAtPhone = (angle < lookThreshold && distance < maxDistance);
 
-        // STATE 1: Ringing
         if (isRinging)
         {
             if (uiPromptCanvas != null) uiPromptCanvas.SetActive(isLookingAtPhone);
             if (photoPromptCanvas != null) photoPromptCanvas.SetActive(false);
         }
-        // STATE 2: Alarm off, Gallery Closed
         else if (alarmDismissed && currentPhotoIndex == -1) 
         {
             if (uiPromptCanvas != null) uiPromptCanvas.SetActive(false);
             if (photoPromptCanvas != null) photoPromptCanvas.SetActive(isLookingAtPhone);
         }
-        // STATE 3: Reading Photos
         else
         {
             if (uiPromptCanvas != null) uiPromptCanvas.SetActive(false);
@@ -103,8 +115,6 @@ public class PhoneAlarmController : MonoBehaviour
 
     private void OnButtonPressed(InputAction.CallbackContext context)
     {
-        // Notice the new check here: we let them click if they are looking at the phone, 
-        // OR if the gallery is already open (so they don't have to perfectly stare at the phone to flip pages)
         if (isLookingAtPhone || currentPhotoIndex != -1)
         {
             if (isRinging)
@@ -129,31 +139,81 @@ public class PhoneAlarmController : MonoBehaviour
 
     private void CyclePhotos()
     {
-        // 1. If a photo is currently open, hide it
+        // 1. Hide the current photo
         if (currentPhotoIndex >= 0 && currentPhotoIndex < reassurancePhotos.Length)
         {
-            if (reassurancePhotos[currentPhotoIndex] != null)
+            if (reassurancePhotos[currentPhotoIndex].photoCanvas != null)
             {
-                reassurancePhotos[currentPhotoIndex].SetActive(false);
+                reassurancePhotos[currentPhotoIndex].photoCanvas.SetActive(false);
             }
         }
 
-        // 2. Move to the next photo in line
+        // 2. Stop any existing subtitle timer if they clicked early
+        if (subtitleTimerCoroutine != null)
+        {
+            StopCoroutine(subtitleTimerCoroutine);
+        }
+
+        // 3. Move to the next photo
         currentPhotoIndex++;
 
-        // 3. Did we run out of photos?
+        // 4. Did we run out of photos?
         if (currentPhotoIndex < reassurancePhotos.Length)
         {
-            // We have another photo! Show it.
-            if (reassurancePhotos[currentPhotoIndex] != null)
+            // Show the next photo
+            if (reassurancePhotos[currentPhotoIndex].photoCanvas != null)
             {
-                reassurancePhotos[currentPhotoIndex].SetActive(true);
+                reassurancePhotos[currentPhotoIndex].photoCanvas.SetActive(true);
+            }
+
+            // Update the Subtitle Text
+            if (subtitleDisplay != null)
+            {
+                subtitleDisplay.text = reassurancePhotos[currentPhotoIndex].subtitleText;
+            }
+            
+            if (phoneScreenLight != null) phoneScreenLight.SetActive(true);
+
+            // Play the Voiceover Audio and start the clearing timer
+            if (voiceOverAudioSource != null && reassurancePhotos[currentPhotoIndex].voiceOver != null)
+            {
+                voiceOverAudioSource.Stop(); 
+                voiceOverAudioSource.PlayOneShot(reassurancePhotos[currentPhotoIndex].voiceOver);
+                
+                // NEW: Start the timer to clear the text based on the exact length of the audio clip
+                subtitleTimerCoroutine = StartCoroutine(ClearSubtitleAfterDelay(reassurancePhotos[currentPhotoIndex].voiceOver.length));
             }
         }
         else
         {
-            // We reached the end of the list. Close the gallery.
+            // Reached the end of the list. Close the gallery.
             currentPhotoIndex = -1;
+            
+            if (phoneScreenLight != null) phoneScreenLight.SetActive(false);
+            if (subtitleDisplay != null) subtitleDisplay.text = "";
+            if (voiceOverAudioSource != null) voiceOverAudioSource.Stop();
         }
     }
+
+    // NEW: The timer function that waits for the audio to finish
+    private IEnumerator ClearSubtitleAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        
+        if (subtitleDisplay != null)
+        {
+            subtitleDisplay.text = "";
+        }
+    }
+}
+
+[System.Serializable]
+public struct PhotoClue
+{
+    public GameObject photoCanvas;
+    
+    [TextArea(2, 4)]
+    public string subtitleText;
+    
+    public AudioClip voiceOver;
 }
