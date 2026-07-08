@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.SceneManagement;
+using System.Collections; // Required for Coroutines
 
 public class AnxietyMinigameManager : MonoBehaviour
 {
@@ -9,19 +11,23 @@ public class AnxietyMinigameManager : MonoBehaviour
     [Header("Anxiety Bar Settings")]
     public float maxAnxiety = 100f;
     public float currentAnxiety;
-    public float passiveDrainRate = 5f; // How much it drops per second
     public Slider anxietyBarSlider;
 
     [Header("Timer Settings")]
-    public float timeLimit = 60f; // 60 seconds to survive
+    public float timeLimit = 60f; 
     private float timeRemaining;
     public TextMeshProUGUI timerText;
+
+    [Header("Scene Transition")]
+    public string concertSceneName = "ConcertScene";
+    [Tooltip("Drag a Black Screen Image from your Minigame UI here")]
+    public Image fadeScreen;
+    public float fadeDuration = 1.5f;
 
     private bool isGameOver = false;
 
     private void Awake()
     {
-        // Singleton pattern for easy access from other scripts
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
     }
@@ -36,13 +42,18 @@ public class AnxietyMinigameManager : MonoBehaviour
             anxietyBarSlider.maxValue = maxAnxiety;
             anxietyBarSlider.value = currentAnxiety;
         }
+
+        // Fade in from black when the minigame starts
+        if (fadeScreen != null)
+        {
+            StartCoroutine(FadeRoutine(1f, 0f, null));
+        }
     }
 
     private void Update()
     {
         if (isGameOver) return;
 
-        // Update Timer
         timeRemaining -= Time.deltaTime;
         timerText.text = "Time: " + Mathf.Ceil(timeRemaining).ToString() + "s";
 
@@ -52,14 +63,7 @@ public class AnxietyMinigameManager : MonoBehaviour
             return;
         }
 
-        // Passively drain anxiety bar
-        currentAnxiety -= passiveDrainRate * Time.deltaTime;
-        UpdateUI();
-
-        if (currentAnxiety <= 0)
-        {
-            LoseGame();
-        }
+        if (currentAnxiety <= 0) LoseGame();
     }
 
     public void ModifyAnxiety(float amount)
@@ -73,23 +77,53 @@ public class AnxietyMinigameManager : MonoBehaviour
 
     private void UpdateUI()
     {
-        if (anxietyBarSlider != null)
-        {
-            anxietyBarSlider.value = currentAnxiety;
-        }
+        if (anxietyBarSlider != null) anxietyBarSlider.value = currentAnxiety;
+    }
+
+    public float GetTimeProgress()
+    {
+        return 1f - (timeRemaining / timeLimit);
     }
 
     private void WinGame()
     {
         isGameOver = true;
-        Debug.Log("Player Survived! Returning to normal...");
-        // Add logic to return to Hawker Centre or show victory screen
+        PlayerPrefs.SetInt("MinigameCompleted", 1); 
+        
+        if (fadeScreen != null) StartCoroutine(FadeRoutine(0f, 1f, () => SceneManager.LoadScene(concertSceneName)));
+        else SceneManager.LoadScene(concertSceneName);
     }
 
     private void LoseGame()
     {
         isGameOver = true;
-        Debug.Log("Anxiety Hit! Player lost.");
-        // Add panic attack effects or restart scene logic
+        
+        if (fadeScreen != null) StartCoroutine(FadeRoutine(0f, 1f, () => SceneManager.LoadScene(SceneManager.GetActiveScene().name)));
+        else SceneManager.LoadScene(SceneManager.GetActiveScene().name); 
+    }
+
+    // Helper Coroutine to handle both fading in and fading out
+    private IEnumerator FadeRoutine(float startAlpha, float endAlpha, System.Action onComplete)
+    {
+        fadeScreen.gameObject.SetActive(true);
+        float timer = 0f;
+        Color c = fadeScreen.color;
+
+        while (timer < fadeDuration)
+        {
+            timer += Time.deltaTime;
+            c.a = Mathf.Lerp(startAlpha, endAlpha, timer / fadeDuration);
+            fadeScreen.color = c;
+            yield return null;
+        }
+
+        c.a = endAlpha;
+        fadeScreen.color = c;
+
+        // If we are fading out to 0 (clear screen), turn the image off to save performance
+        if (endAlpha == 0f) fadeScreen.gameObject.SetActive(false);
+
+        // Run whatever function we passed in (like LoadScene) once the fade is fully complete
+        onComplete?.Invoke();
     }
 }

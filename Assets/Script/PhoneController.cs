@@ -1,8 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using TMPro; 
-using System.Collections; // Required for Coroutines
-
+using System.Collections; 
 
 public class PhoneAlarmController : MonoBehaviour
 {
@@ -20,7 +19,6 @@ public class PhoneAlarmController : MonoBehaviour
     public PhotoClue[] reassurancePhotos; 
 
     [Header("Alarm Settings")]
-    [Tooltip("How many seconds after the scene starts before the phone rings?")]
     public float timeBeforeAlarm = 5.0f;
 
     [Header("Gaze Settings")]
@@ -39,14 +37,20 @@ public class PhoneAlarmController : MonoBehaviour
     
     private int currentPhotoIndex = -1; 
     
-    // NEW: We use this to track the subtitle timer so we can stop it if they click 'Next' early
-    private Coroutine subtitleTimerCoroutine;
+    // NEW: Tracks if a photo's dialogue is currently running to block input
+    private bool isDialoguePlaying = false;
+    
+    // NEW: Remembers which photos have already been viewed
+    private bool[] hasViewedPhoto;
 
     void Start()
     {
         if (uiPromptCanvas != null) uiPromptCanvas.SetActive(false);
         if (photoPromptCanvas != null) photoPromptCanvas.SetActive(false);
         if (subtitleDisplay != null) subtitleDisplay.text = "";
+        
+        // Initialize the memory array to match the number of photos you have
+        hasViewedPhoto = new bool[reassurancePhotos.Length];
         
         foreach (PhotoClue clue in reassurancePhotos)
         {
@@ -55,7 +59,6 @@ public class PhoneAlarmController : MonoBehaviour
         
         if (Camera.main != null) playerCamera = Camera.main.transform;
 
-        // Start the alarm timer automatically
         Invoke("TriggerAlarm", timeBeforeAlarm);
     }
 
@@ -115,6 +118,9 @@ public class PhoneAlarmController : MonoBehaviour
 
     private void OnButtonPressed(InputAction.CallbackContext context)
     {
+        // NEW: If the dialogue is playing, completely ignore the button press!
+        if (isDialoguePlaying) return;
+
         if (isLookingAtPhone || currentPhotoIndex != -1)
         {
             if (isRinging)
@@ -148,40 +154,34 @@ public class PhoneAlarmController : MonoBehaviour
             }
         }
 
-        // 2. Stop any existing subtitle timer if they clicked early
-        if (subtitleTimerCoroutine != null)
-        {
-            StopCoroutine(subtitleTimerCoroutine);
-        }
-
-        // 3. Move to the next photo
+        // 2. Move to the next photo
         currentPhotoIndex++;
 
-        // 4. Did we run out of photos?
+        // 3. Did we run out of photos?
         if (currentPhotoIndex < reassurancePhotos.Length)
         {
-            // Show the next photo
+            // Show the next photo visually
             if (reassurancePhotos[currentPhotoIndex].photoCanvas != null)
             {
                 reassurancePhotos[currentPhotoIndex].photoCanvas.SetActive(true);
             }
 
-            // Update the Subtitle Text
-            if (subtitleDisplay != null)
-            {
-                subtitleDisplay.text = reassurancePhotos[currentPhotoIndex].subtitleText;
-            }
-            
             if (phoneScreenLight != null) phoneScreenLight.SetActive(true);
 
-            // Play the Voiceover Audio and start the clearing timer
-            if (voiceOverAudioSource != null && reassurancePhotos[currentPhotoIndex].voiceOver != null)
+            // NEW: Check if this is the FIRST time seeing this photo
+            if (!hasViewedPhoto[currentPhotoIndex])
             {
-                voiceOverAudioSource.Stop(); 
-                voiceOverAudioSource.PlayOneShot(reassurancePhotos[currentPhotoIndex].voiceOver);
+                // Mark it as viewed so it never plays again
+                hasViewedPhoto[currentPhotoIndex] = true;
                 
-                // NEW: Start the timer to clear the text based on the exact length of the audio clip
-                subtitleTimerCoroutine = StartCoroutine(ClearSubtitleAfterDelay(reassurancePhotos[currentPhotoIndex].voiceOver.length));
+                // Start the master coroutine that locks input and plays the sequence
+                StartCoroutine(PlayDialogueAndWait(currentPhotoIndex));
+            }
+            else
+            {
+                // If they've already seen it, ensure no audio or text is lingering
+                if (subtitleDisplay != null) subtitleDisplay.text = "";
+                if (voiceOverAudioSource != null) voiceOverAudioSource.Stop();
             }
         }
         else
@@ -195,25 +195,57 @@ public class PhoneAlarmController : MonoBehaviour
         }
     }
 
-    // NEW: The timer function that waits for the audio to finish
-    private IEnumerator ClearSubtitleAfterDelay(float delay)
+    // NEW: Unified Coroutine that handles audio, subtitles, and input locking
+    private IEnumerator PlayDialogueAndWait(int index)
     {
-        yield return new WaitForSeconds(delay);
-        
-        if (subtitleDisplay != null)
+        // 1. Lock the player's input immediately
+        isDialoguePlaying = true;
+
+        // 2. Start the audio
+        if (voiceOverAudioSource != null && reassurancePhotos[index].voiceOver != null)
         {
-            subtitleDisplay.text = "";
+            voiceOverAudioSource.Stop();
+            voiceOverAudioSource.PlayOneShot(reassurancePhotos[index].voiceOver);
         }
+
+        SubtitleSequence[] lines = reassurancePhotos[index].subtitleLines;
+
+        // 3. Play the subtitles if they exist
+        if (lines != null && lines.Length > 0)
+        {
+            foreach (SubtitleSequence line in lines)
+            {
+                if (subtitleDisplay != null) subtitleDisplay.text = line.text;
+                yield return new WaitForSeconds(line.duration);
+            }
+        }
+        else if (reassurancePhotos[index].voiceOver != null)
+        {
+            // Failsafe: If you forgot to type subtitles, just wait for the audio clip to finish
+            yield return new WaitForSeconds(reassurancePhotos[index].voiceOver.length);
+        }
+
+        // 4. Clean up and unlock input
+        if (subtitleDisplay != null) subtitleDisplay.text = "";
+        isDialoguePlaying = false; 
     }
+}
+
+[System.Serializable]
+public struct SubtitleSequence
+{
+    [TextArea(2, 3)]
+    public string text;
+    [Tooltip("How many seconds this specific line should stay on screen")]
+    public float duration;
 }
 
 [System.Serializable]
 public struct PhotoClue
 {
     public GameObject photoCanvas;
-    
-    [TextArea(2, 4)]
-    public string subtitleText;
-    
     public AudioClip voiceOver;
+    
+    [Tooltip("Add each line of dialogue and how long it should appear here.")]
+    public SubtitleSequence[] subtitleLines; 
 }

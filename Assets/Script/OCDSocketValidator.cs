@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using System.Collections;
+using TMPro; // Required for TextMeshPro subtitles
 
 public class OCDSocketValidator : MonoBehaviour, IXRSelectFilter, IXRHoverFilter
 {
@@ -26,12 +27,18 @@ public class OCDSocketValidator : MonoBehaviour, IXRSelectFilter, IXRHoverFilter
     private int randomizedMaxDoubts; 
     private int currentDoubtCount = 0;
 
+    [Header("Central Subtitle UI")]
+    [Tooltip("Drag your main Subtitle Text (TMP) object here")]
+    public TMP_Text subtitleDisplay;
+
     [Header("First Doubt Sequence")]
-    public GameObject doubt1UICanvas; 
+    [TextArea(2, 3)]
+    public string doubt1Text = "Wait, is this really right?";
     public AudioSource doubt1Audio;
 
     [Header("Second Doubt Sequence")]
-    public GameObject doubt2UICanvas; 
+    [TextArea(2, 3)]
+    public string doubt2Text = "No, let me check it one more time.";
     public AudioSource doubt2Audio;
 
     void Awake()
@@ -41,7 +48,6 @@ public class OCDSocketValidator : MonoBehaviour, IXRSelectFilter, IXRHoverFilter
 
     void Start()
     {
-        // Randomly decide how many times this specific socket will doubt (0, 1, or 2)
         randomizedMaxDoubts = Random.Range(0, 3);
     }
 
@@ -79,7 +85,6 @@ public class OCDSocketValidator : MonoBehaviour, IXRSelectFilter, IXRHoverFilter
 
         GameObject snappedItem = args.interactableObject.transform.gameObject;
 
-        // Check against our randomized max limit instead of a hardcoded number
         if (enablePhantomDoubt && currentDoubtCount < randomizedMaxDoubts)
         {
             StartCoroutine(TriggerDoubt(snappedItem));
@@ -102,33 +107,30 @@ public class OCDSocketValidator : MonoBehaviour, IXRSelectFilter, IXRHoverFilter
 
         Debug.Log($"Intrusive thought triggered! Rejecting item... ({currentDoubtCount}/{randomizedMaxDoubts})");
         
-        // Determine which UI and Audio to play based on which doubt this is
-        GameObject activeCanvas = null;
+        string activeText = "";
         AudioSource activeAudio = null;
 
         if (currentDoubtCount == 1)
         {
-            activeCanvas = doubt1UICanvas;
+            activeText = doubt1Text;
             activeAudio = doubt1Audio;
         }
         else if (currentDoubtCount == 2)
         {
-            activeCanvas = doubt2UICanvas;
+            activeText = doubt2Text;
             activeAudio = doubt2Audio;
         }
 
-        // Turn on the selected UI and Audio
-        if (activeCanvas != null) activeCanvas.SetActive(true);
+        // Display the text on the central subtitle system
+        if (subtitleDisplay != null) subtitleDisplay.text = activeText;
         if (activeAudio != null) activeAudio.Play();
         
-        // Calculate the exact length of the voiceover (default to 1.5s if missing)
         float waitTime = 1.5f;
         if (activeAudio != null && activeAudio.clip != null)
         {
             waitTime = activeAudio.clip.length;
         }
 
-        // Wait for the voiceover to completely finish before spitting the item out
         yield return new WaitForSeconds(waitTime);
 
         // Safely disable the socket to push the item out
@@ -139,7 +141,6 @@ public class OCDSocketValidator : MonoBehaviour, IXRSelectFilter, IXRHoverFilter
             
             if (rb != null) 
             {
-                // Pop the item slightly up and forward
                 rb.AddForce(Vector3.up * 1.5f + transform.forward * 3.5f, ForceMode.Impulse);
             }
 
@@ -147,8 +148,8 @@ public class OCDSocketValidator : MonoBehaviour, IXRSelectFilter, IXRHoverFilter
             socket.enabled = true; 
         }
         
-        // Turn the UI off again
-        if (activeCanvas != null) activeCanvas.SetActive(false);
+        // Clear the text, which will automatically hide your black background box
+        if (subtitleDisplay != null) subtitleDisplay.text = "";
     }
 
     private IEnumerator LockItemPermanently(GameObject item)
