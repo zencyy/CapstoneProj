@@ -4,81 +4,89 @@ using System.Collections.Generic;
 
 public class MinigameSpawner : MonoBehaviour
 {
-    [Header("References")]
-    [Tooltip("Drag your Main Camera from the XR Origin into this slot!")]
-    public Transform playerTarget;
-
     [Header("Prefabs")]
     public GameObject[] npcPrefabs; 
     public Transform[] lanes; 
     
     [Header("Difficulty Settings")]
-    [Tooltip("How many seconds to wait before the VERY FIRST wave spawns")]
-    public float initialSpawnDelay = 3.0f; // <--- NEW VARIABLE
+    public float initialSpawnDelay = 2.0f; 
+    public float maxSpawnDelay = 1.2f; 
+    public float minSpawnDelay = 0.15f; 
     
-    [Tooltip("The longest wait between waves (at the start of the game)")]
-    public float maxSpawnDelay = 2.5f; 
-    [Tooltip("The shortest wait between waves (near the end of the game)")]
-    public float minSpawnDelay = 0.8f; 
-    public float minNpcSpeed = 5f;
-    public float maxNpcSpeed = 12f; 
+    public float minNpcSpeed = 7f; 
+    public float maxNpcSpeed = 15f; 
+
+    [Header("Organic Crowd Tweaks")]
+    [Tooltip("How much random speed variation to give each NPC so they don't walk perfectly side-by-side")]
+    public float speedVariance = 2.0f;
+    [Tooltip("How far back to randomly push an NPC when they spawn so waves aren't flat walls")]
+    public float maxZStagger = 3.5f;
+
+    [Header("Pacing")]
+    public AnimationCurve panicCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
 
     void Start()
     {
-        // Start the continuous wave spawning loop
         StartCoroutine(SpawnWaves());
     }
 
     private IEnumerator SpawnWaves()
     {
-        // ---> NEW: Wait for a few seconds before starting the first wave <---
         yield return new WaitForSeconds(initialSpawnDelay);
 
-        // Keep looping as long as this GameObject is active
         while (true)
         {
-            float progress = 0f;
-            if (AnxietyMinigameManager.Instance != null)
+            if (AnxietyMinigameManager.Instance != null && AnxietyMinigameManager.Instance.isGameOver)
             {
-                progress = AnxietyMinigameManager.Instance.GetTimeProgress();
+                yield break; 
             }
 
-            // 1. Determine how many NPCs to spawn this wave (1, 2, or 3)
-            int npcsToSpawn = Random.Range(1, 4);
-            
-            // Safety check: Don't try to spawn more NPCs than we have lanes!
+            float rawProgress = 0f;
+            if (AnxietyMinigameManager.Instance != null)
+            {
+                rawProgress = AnxietyMinigameManager.Instance.GetTimeProgress();
+            }
+
+            float curveProgress = panicCurve.Evaluate(rawProgress);
+
+            int npcsToSpawn = Random.Range(1, 3); 
             npcsToSpawn = Mathf.Min(npcsToSpawn, lanes.Length);
 
-            // 2. Create a temporary list of available lanes so they don't overlap
             List<Transform> availableLanes = new List<Transform>(lanes);
 
             for (int i = 0; i < npcsToSpawn; i++)
             {
-                if (npcPrefabs.Length == 0 || availableLanes.Count == 0 || playerTarget == null) break;
+                if (npcPrefabs.Length == 0 || availableLanes.Count == 0) break;
 
-                // Pick a random lane, then remove it from the available list for this wave
                 int laneIndex = Random.Range(0, availableLanes.Count);
                 Transform spawnPoint = availableLanes[laneIndex];
                 availableLanes.RemoveAt(laneIndex);
 
-                // Pick a random NPC
                 int randomNpcIndex = Random.Range(0, npcPrefabs.Length);
                 GameObject objToSpawn = npcPrefabs[randomNpcIndex];
 
-                // Spawn the NPC
                 GameObject spawnedObj = Instantiate(objToSpawn, spawnPoint.position, spawnPoint.rotation);
+
+                // ---> NEW 1: THE STAGGER
+                // Push the NPC slightly further back (assuming your hallway uses positive Z for distance)
+                // If this pushes them forward instead of backward, change it to -randomStagger!
+                float randomStagger = Random.Range(0f, maxZStagger);
+                spawnedObj.transform.position += new Vector3(0, 0, randomStagger);
 
                 MinigameObject minigameLogic = spawnedObj.GetComponent<MinigameObject>();
                 if (minigameLogic != null)
                 {
-                    minigameLogic.target = playerTarget;
-                    minigameLogic.speed = Mathf.Lerp(minNpcSpeed, maxNpcSpeed, progress);
+                    // ---> NEW 2: THE SHUFFLE
+                    // Calculate the base speed, then add or subtract a random amount
+                    float baseSpeed = Mathf.Lerp(minNpcSpeed, maxNpcSpeed, curveProgress);
+                    float randomizedSpeed = baseSpeed + Random.Range(-speedVariance, speedVariance);
+                    
+                    // Clamp it just to ensure no one accidentally walks backwards or stops
+                    minigameLogic.speed = Mathf.Max(3f, randomizedSpeed); 
                 }
             }
 
-            // 3. Calculate how long to wait before the next wave (gets faster over time)
-            float currentWaitTime = Mathf.Lerp(maxSpawnDelay, minSpawnDelay, progress);
-            
+            float currentWaitTime = Mathf.Lerp(maxSpawnDelay, minSpawnDelay, curveProgress);
             yield return new WaitForSeconds(currentWaitTime);
         }
     }
