@@ -4,29 +4,28 @@ using System.Collections.Generic;
 
 public class MinigameSpawner : MonoBehaviour
 {
+    [Header("References")]
+    [Tooltip("Drag the Main Camera here so the spawner stays ahead of the player")]
+    public Transform playerCamera;
+
     [Header("Prefabs")]
     public GameObject[] npcPrefabs; 
+    public GameObject[] positiveThoughtPrefabs; // ---> NEW: Slot for collectibles
     public Transform[] lanes; 
     
     [Header("Difficulty Settings")]
+    [Tooltip("How far ahead of the player should objects spawn?")]
+    public float spawnDistanceAhead = 25f;
     public float initialSpawnDelay = 2.0f; 
     public float maxSpawnDelay = 1.2f; 
-    public float minSpawnDelay = 0.15f; 
+    public float minSpawnDelay = 0.4f; 
     
-    public float minNpcSpeed = 7f; 
-    public float maxNpcSpeed = 15f; 
-
-    [Header("Organic Crowd Tweaks")]
-    [Tooltip("How much random speed variation to give each NPC so they don't walk perfectly side-by-side")]
-    public float speedVariance = 2.0f;
-    [Tooltip("How far back to randomly push an NPC when they spawn so waves aren't flat walls")]
-    public float maxZStagger = 3.5f;
-
-    [Header("Pacing")]
-    public AnimationCurve panicCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+    public float minSpeed = 5f; 
+    public float maxSpeed = 12f; 
 
     void Start()
     {
+        if (playerCamera == null && Camera.main != null) playerCamera = Camera.main.transform;
         StartCoroutine(SpawnWaves());
     }
 
@@ -36,57 +35,54 @@ public class MinigameSpawner : MonoBehaviour
 
         while (true)
         {
-            if (AnxietyMinigameManager.Instance != null && AnxietyMinigameManager.Instance.isGameOver)
-            {
-                yield break; 
-            }
+            if (AnxietyMinigameManager.Instance != null && AnxietyMinigameManager.Instance.isGameOver) yield break; 
 
-            float rawProgress = 0f;
-            if (AnxietyMinigameManager.Instance != null)
-            {
-                rawProgress = AnxietyMinigameManager.Instance.GetTimeProgress();
-            }
+            float progress = AnxietyMinigameManager.Instance != null ? AnxietyMinigameManager.Instance.GetTimeProgress() : 0f;
+            bool isPhaseTwo = AnxietyMinigameManager.Instance != null && AnxietyMinigameManager.Instance.isPhaseTwo;
 
-            float curveProgress = panicCurve.Evaluate(rawProgress);
-
-            int npcsToSpawn = Random.Range(1, 3); 
-            npcsToSpawn = Mathf.Min(npcsToSpawn, lanes.Length);
-
+            int objectsToSpawn = Random.Range(1, 3); 
+            objectsToSpawn = Mathf.Min(objectsToSpawn, lanes.Length);
             List<Transform> availableLanes = new List<Transform>(lanes);
 
-            for (int i = 0; i < npcsToSpawn; i++)
+            for (int i = 0; i < objectsToSpawn; i++)
             {
-                if (npcPrefabs.Length == 0 || availableLanes.Count == 0) break;
+                if (availableLanes.Count == 0) break;
 
                 int laneIndex = Random.Range(0, availableLanes.Count);
-                Transform spawnPoint = availableLanes[laneIndex];
+                Transform laneData = availableLanes[laneIndex];
                 availableLanes.RemoveAt(laneIndex);
 
-                int randomNpcIndex = Random.Range(0, npcPrefabs.Length);
-                GameObject objToSpawn = npcPrefabs[randomNpcIndex];
+                // ---> NEW: Math to spawn the object ahead of the moving player
+                Vector3 dynamicSpawnPos = laneData.position;
+                dynamicSpawnPos.z = playerCamera.position.z + spawnDistanceAhead;
 
-                GameObject spawnedObj = Instantiate(objToSpawn, spawnPoint.position, spawnPoint.rotation);
+                GameObject objToSpawn = null;
 
-                // ---> NEW 1: THE STAGGER
-                // Push the NPC slightly further back (assuming your hallway uses positive Z for distance)
-                // If this pushes them forward instead of backward, change it to -randomStagger!
-                float randomStagger = Random.Range(0f, maxZStagger);
-                spawnedObj.transform.position += new Vector3(0, 0, randomStagger);
-
-                MinigameObject minigameLogic = spawnedObj.GetComponent<MinigameObject>();
-                if (minigameLogic != null)
+                // ---> NEW: In Phase 2, 40% chance to spawn a Positive Thought instead of an NPC
+                if (isPhaseTwo && positiveThoughtPrefabs.Length > 0 && Random.value > 0.6f)
                 {
-                    // ---> NEW 2: THE SHUFFLE
-                    // Calculate the base speed, then add or subtract a random amount
-                    float baseSpeed = Mathf.Lerp(minNpcSpeed, maxNpcSpeed, curveProgress);
-                    float randomizedSpeed = baseSpeed + Random.Range(-speedVariance, speedVariance);
-                    
-                    // Clamp it just to ensure no one accidentally walks backwards or stops
-                    minigameLogic.speed = Mathf.Max(3f, randomizedSpeed); 
+                    objToSpawn = positiveThoughtPrefabs[Random.Range(0, positiveThoughtPrefabs.Length)];
+                }
+                else if (npcPrefabs.Length > 0)
+                {
+                    objToSpawn = npcPrefabs[Random.Range(0, npcPrefabs.Length)];
+                }
+
+                if (objToSpawn != null)
+                {
+                    GameObject spawnedObj = Instantiate(objToSpawn, dynamicSpawnPos, laneData.rotation);
+
+                    // If it's an NPC
+                    MinigameObject npcLogic = spawnedObj.GetComponent<MinigameObject>();
+                    if (npcLogic != null) npcLogic.speed = Mathf.Lerp(minSpeed, maxSpeed, progress);
+
+                    // If it's a Positive Thought
+                    PositiveThought thoughtLogic = spawnedObj.GetComponent<PositiveThought>();
+                    if (thoughtLogic != null) thoughtLogic.speed = Mathf.Lerp(minSpeed, maxSpeed, progress) * 0.8f; // Thoughts move slightly slower
                 }
             }
 
-            float currentWaitTime = Mathf.Lerp(maxSpawnDelay, minSpawnDelay, curveProgress);
+            float currentWaitTime = Mathf.Lerp(maxSpawnDelay, minSpawnDelay, progress);
             yield return new WaitForSeconds(currentWaitTime);
         }
     }
