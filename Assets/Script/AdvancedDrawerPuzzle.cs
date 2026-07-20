@@ -39,11 +39,15 @@ public class AdvancedDrawerPuzzle : MonoBehaviour
 
     void Start()
     {
+        // 1. ABSOLUTE LOCKDOWN ON START
         if (drawerGrabScript != null) drawerGrabScript.enabled = false;
         if (feedbackCanvas != null) feedbackCanvas.SetActive(false);
 
         Rigidbody rb = GetComponent<Rigidbody>();
-        if (rb != null) rb.isKinematic = true;
+        if (rb != null) 
+        {
+            rb.isKinematic = true; // Prevents the drawer from sliding if bumped
+        }
     }
 
     void Update()
@@ -73,6 +77,7 @@ public class AdvancedDrawerPuzzle : MonoBehaviour
 
     void LateUpdate()
     {
+        // Keeps the items perfectly inside the drawer once solved and sliding
         for (int i = 0; i < gluedItems.Count; i++)
         {
             if (gluedItems[i] != null)
@@ -111,21 +116,19 @@ public class AdvancedDrawerPuzzle : MonoBehaviour
 
         if (isCorrect)
         {
-            // NEW LOGIC: They got the items in the right order! But is the compulsion satisfied?
             currentSuccessCount++;
 
             if (currentSuccessCount < requiredSuccesses)
             {
-                // THEY MUST REPEAT IT
+                // SUCCESS 1: TRIGGER THE DOUBT MECHANIC
                 if (feedbackText != null) feedbackText.text = puzzleDoubtMessage;
                 if (puzzleDoubtAudio != null) puzzleDoubtAudio.Play();
                 
                 StartCoroutine(RejectEntirePuzzle());
-                // We stop here so the success code doesn't run yet!
             }
             else
             {
-                // TRUE SUCCESS
+                // SUCCESS 2: TRUE SUCCESS, UNLOCK THE DRAWER
                 isSolved = true;
                 if (feedbackText != null) feedbackText.text = successMessage;
                 if (successAudio != null) successAudio.Play();
@@ -162,59 +165,48 @@ public class AdvancedDrawerPuzzle : MonoBehaviour
                     socket.enabled = false; 
                 }
                 
+                // UNFREEZE THE DRAWER FOR SLIDING
                 Rigidbody drawerRb = GetComponent<Rigidbody>();
                 if (drawerRb != null) drawerRb.isKinematic = false;
 
+                // ALLOW THE PLAYER TO GRAB THE DRAWER
                 if (drawerGrabScript != null) drawerGrabScript.enabled = true; 
 
-                Debug.Log("Puzzle Solved! Items mathematically glued to the drawer.");
+                Debug.Log("Puzzle Solved! Drawer is now unlocked and can slide.");
                 isChecking = false;
             }
         }
         else
         {
-            // THEY GOT THE ORDER WRONG
+            // FAILED: WRONG ORDER
             if (feedbackText != null) feedbackText.text = errorMessage;
             if (errorAudio != null) errorAudio.Play();
             isChecking = false;
         }
     }
 
-    // NEW COROUTINE: Violently rejects all items so the player has to put them back
     private IEnumerator RejectEntirePuzzle()
     {
-        // Let the player read the frustrating "Do it again" text for 2 seconds
         yield return new WaitForSeconds(2.0f);
 
-        // Pop all 3 items out simultaneously
         foreach (var socket in drawerSockets)
         {
             if (socket.hasSelection)
             {
                 GameObject item = socket.firstInteractableSelected.transform.gameObject;
-                
-                // Disable socket to release the item
                 socket.enabled = false;
                 
                 Rigidbody rb = item.GetComponent<Rigidbody>();
                 if (rb != null)
                 {
-                    // 1. Shoot them straight UP in World Space to clear the drawer walls (adjust the 4f if they don't pop high enough)
                     Vector3 upwardPop = Vector3.up * 4f;
-
-                    // 2. Add a random horizontal spread so they don't land in the exact same spot
                     Vector3 randomScatter = new Vector3(Random.Range(-1.5f, 1.5f), 0, Random.Range(-1.5f, 1.5f));
-
-                    // Apply the pop and scatter
                     rb.AddForce(upwardPop + randomScatter, ForceMode.Impulse);
-
-                    // 3. Add random rotation (Torque) so the jars tumble naturally in the air
                     rb.AddTorque(Random.insideUnitSphere * 3f, ForceMode.Impulse);
                 }
             }
         }
 
-        // Wait 1.5 seconds before turning the sockets back on so the items have time to fall completely out of the trigger zones
         yield return new WaitForSeconds(1.5f);
 
         foreach (var socket in drawerSockets)
@@ -223,10 +215,7 @@ public class AdvancedDrawerPuzzle : MonoBehaviour
         }
 
         if (feedbackCanvas != null) feedbackCanvas.SetActive(false);
-        
-        Debug.Log($"Macro Doubt Triggered! The player must re-do the puzzle. ({currentSuccessCount}/{requiredSuccesses})");
-        
-        // Reset the check so the player can try again
+        Debug.Log($"Doubt Triggered. The player must re-do the puzzle. ({currentSuccessCount}/{requiredSuccesses})");
         isChecking = false; 
     }
 }

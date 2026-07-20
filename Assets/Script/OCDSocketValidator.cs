@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Filtering;
 using System.Collections;
-using TMPro; // Required for TextMeshPro subtitles
+using TMPro; 
 
 public class OCDSocketValidator : MonoBehaviour, IXRSelectFilter, IXRHoverFilter
 {
@@ -23,7 +23,6 @@ public class OCDSocketValidator : MonoBehaviour, IXRSelectFilter, IXRHoverFilter
     [Header("Psychological Mechanics")]
     public bool enablePhantomDoubt = true;
     
-    // The script will randomly pick 0, 1, or 2 when the game starts
     private int randomizedMaxDoubts; 
     private int currentDoubtCount = 0;
 
@@ -85,6 +84,12 @@ public class OCDSocketValidator : MonoBehaviour, IXRSelectFilter, IXRHoverFilter
 
         GameObject snappedItem = args.interactableObject.transform.gameObject;
 
+        Rigidbody rb = snappedItem.GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.isKinematic = true;
+        }
+
         if (enablePhantomDoubt && currentDoubtCount < randomizedMaxDoubts)
         {
             StartCoroutine(TriggerDoubt(snappedItem));
@@ -121,7 +126,6 @@ public class OCDSocketValidator : MonoBehaviour, IXRSelectFilter, IXRHoverFilter
             activeAudio = doubt2Audio;
         }
 
-        // Display the text on the central subtitle system
         if (subtitleDisplay != null) subtitleDisplay.text = activeText;
         if (activeAudio != null) activeAudio.Play();
         
@@ -133,7 +137,6 @@ public class OCDSocketValidator : MonoBehaviour, IXRSelectFilter, IXRHoverFilter
 
         yield return new WaitForSeconds(waitTime);
 
-        // Safely disable the socket to push the item out
         if (socket != null)
         {
             socket.enabled = false;
@@ -141,6 +144,7 @@ public class OCDSocketValidator : MonoBehaviour, IXRSelectFilter, IXRHoverFilter
             
             if (rb != null) 
             {
+                rb.isKinematic = false;
                 rb.AddForce(Vector3.up * 1.5f + transform.forward * 3.5f, ForceMode.Impulse);
             }
 
@@ -148,22 +152,30 @@ public class OCDSocketValidator : MonoBehaviour, IXRSelectFilter, IXRHoverFilter
             socket.enabled = true; 
         }
         
-        // Clear the text, which will automatically hide your black background box
         if (subtitleDisplay != null) subtitleDisplay.text = "";
     }
 
     private IEnumerator LockItemPermanently(GameObject item)
     {
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(0.1f); 
 
+        // 1. Completely lock down the physics engine for this item
         Rigidbody rb = item.GetComponent<Rigidbody>();
-        if (rb != null) rb.isKinematic = true; 
+        if (rb != null)
+        {
+            rb.isKinematic = true;
+            rb.useGravity = false;
+            rb.constraints = RigidbodyConstraints.FreezeAll;
+        }
 
+        // 2. Prevent the player from grabbing it again
         var grabInteractable = item.GetComponent<UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable>();
-        if (grabInteractable != null) grabInteractable.enabled = false;
+        if (grabInteractable != null) 
+        {
+            grabInteractable.enabled = false;
+        }
 
-        if (socket != null) socket.enabled = false;
-        
-        Debug.Log(item.name + " permanently locked.");
+        // We specifically leave the socket component ENABLED here so it doesn't force a drop!
+        Debug.Log(item.name + " permanently locked in the socket.");
     }
 }

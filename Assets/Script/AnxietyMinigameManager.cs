@@ -4,21 +4,7 @@ using TMPro;
 using UnityEngine.SceneManagement;
 using System.Collections;
 
-// ---> NEW: Struct to hold the timed voiceover data
-[System.Serializable]
-public class TimedVoiceOver
-{
-    [Tooltip("Play this when the timer hits this number (e.g. 20 for 20 seconds left)")]
-    public float triggerTime; 
-    
-    [TextArea(2, 3)]
-    public string subtitleText;
-    
-    public AudioClip clip;
-    
-    [HideInInspector] 
-    public bool hasPlayed = false;
-}
+
 
 public class AnxietyMinigameManager : MonoBehaviour
 {
@@ -29,19 +15,25 @@ public class AnxietyMinigameManager : MonoBehaviour
     public float currentAnxiety;
     public Slider anxietyBarSlider;
     
+    [Tooltip("How much anxiety drains PER SECOND during the final 30 seconds")]
+    public float phaseTwoDrainRate = 5f;
+
     public GameObject mainHUD; 
 
     [Header("Timer Settings")]
-    public float timeLimit = 30f; 
+    public float timeLimit = 60f; 
     private float timeRemaining;
     public TextMeshProUGUI timerText;
 
+    [Header("Phase 2 UI")]
+    [Tooltip("Drag the Text element that tells the player to collect thoughts here")]
+    public TMP_Text phaseTwoPromptText;
+    [Tooltip("How long the prompt stays on screen before fading out")]
+    public float promptDisplayTime = 4.0f;
+
     [Header("Mid-Game Voiceovers")]
-    [Tooltip("The Audio Source that will play the character's internal thoughts")]
     public AudioSource voiceOverSource;
-    [Tooltip("Drag your central Subtitle Text (TMP) here")]
     public TMP_Text subtitleDisplay;
-    [Tooltip("Add your specific voice lines and when they should play here")]
     public TimedVoiceOver[] timedVoiceOvers;
 
     [Header("Scene Transition")]
@@ -58,8 +50,8 @@ public class AnxietyMinigameManager : MonoBehaviour
     [Header("Failure UI")]
     public GameObject failureUIContainer; 
 
-    [HideInInspector] 
-    public bool isGameOver = false;
+    [HideInInspector] public bool isGameOver = false;
+    [HideInInspector] public bool isPhaseTwo = false;
 
     private bool isLowHealthHeartbeatPlaying = false; 
     private Coroutine currentSubtitleCoroutine;
@@ -84,6 +76,15 @@ public class AnxietyMinigameManager : MonoBehaviour
         if (failureUIContainer != null) failureUIContainer.SetActive(false);
         if (mainHUD != null) mainHUD.SetActive(true);
         if (subtitleDisplay != null) subtitleDisplay.text = "";
+        
+        // Hide the Phase 2 prompt at the start
+        if (phaseTwoPromptText != null)
+        {
+            Color c = phaseTwoPromptText.color;
+            c.a = 0f;
+            phaseTwoPromptText.color = c;
+            phaseTwoPromptText.gameObject.SetActive(false);
+        }
 
         if (minigameBGM != null) minigameBGM.Play();
 
@@ -101,21 +102,30 @@ public class AnxietyMinigameManager : MonoBehaviour
         timeRemaining -= Time.deltaTime;
         timerText.text = "Time: " + Mathf.Ceil(timeRemaining).ToString() + "s";
 
-        // ---> NEW: Check if it is time to play a voiceover line
+        // ---> NEW: Improved Phase 2 Trigger Logic
+        if (timeRemaining <= 30f)
+        {
+            // Only run the transition setup ONCE
+            if (!isPhaseTwo)
+            {
+                isPhaseTwo = true;
+                if (phaseTwoPromptText != null) StartCoroutine(DisplayPhaseTwoPrompt());
+            }
+            
+            // Constantly drain anxiety every frame during Phase 2
+            ModifyAnxiety(-phaseTwoDrainRate * Time.deltaTime);
+        }
+
         foreach (TimedVoiceOver vo in timedVoiceOvers)
         {
             if (!vo.hasPlayed && timeRemaining <= vo.triggerTime)
             {
                 vo.hasPlayed = true;
-                
-                // Stop the previous subtitle timer if they overlap
                 if (currentSubtitleCoroutine != null) StopCoroutine(currentSubtitleCoroutine);
-                
                 currentSubtitleCoroutine = StartCoroutine(PlayVoiceOverLine(vo));
             }
         }
 
-        // The 50% Heartbeat Trigger
         if (currentAnxiety <= (maxAnxiety / 2f) && currentAnxiety > 0)
         {
             if (!isLowHealthHeartbeatPlaying && heartbeatAudio != null)
@@ -126,52 +136,70 @@ public class AnxietyMinigameManager : MonoBehaviour
             }
         }
 
-        if (timeRemaining <= 0)
-        {
-            WinGame();
-            return;
-        }
-
+        if (timeRemaining <= 0) LoseGame();
         if (currentAnxiety <= 0) LoseGame();
+    }
+
+    // ---> NEW: Coroutine to smoothly fade the prompt in and out
+    private IEnumerator DisplayPhaseTwoPrompt()
+    {
+        phaseTwoPromptText.gameObject.SetActive(true);
+        phaseTwoPromptText.text = "Collect the positive thoughts!";
+        
+        float fadeTime = 1f;
+        float timer = 0f;
+        Color c = phaseTwoPromptText.color;
+
+        // Fade In
+        while (timer < fadeTime)
+        {
+            timer += Time.deltaTime;
+            c.a = Mathf.Lerp(0f, 1f, timer / fadeTime);
+            phaseTwoPromptText.color = c;
+            yield return null;
+        }
+        
+        c.a = 1f;
+        phaseTwoPromptText.color = c;
+
+        // Hold on screen
+        yield return new WaitForSeconds(promptDisplayTime);
+
+        // Fade Out
+        timer = 0f;
+        while (timer < fadeTime)
+        {
+            timer += Time.deltaTime;
+            c.a = Mathf.Lerp(1f, 0f, timer / fadeTime);
+            phaseTwoPromptText.color = c;
+            yield return null;
+        }
+        
+        c.a = 0f;
+        phaseTwoPromptText.color = c;
+        phaseTwoPromptText.gameObject.SetActive(false);
     }
 
     private IEnumerator PlayVoiceOverLine(TimedVoiceOver vo)
     {
-        // 1. Play the audio
         if (voiceOverSource != null && vo.clip != null)
         {
             voiceOverSource.Stop(); 
             voiceOverSource.PlayOneShot(vo.clip);
         }
+        if (subtitleDisplay != null) subtitleDisplay.text = vo.subtitleText;
 
-        // 2. Display the text
-        if (subtitleDisplay != null)
-        {
-            subtitleDisplay.text = vo.subtitleText;
-        }
-
-        // 3. Wait for the exact length of the audio clip (or 2 seconds if missing)
         float waitTime = (vo.clip != null) ? vo.clip.length : 2.0f;
         yield return new WaitForSeconds(waitTime);
 
-        // 4. Clear the text (which automatically hides your black background)
-        if (subtitleDisplay != null && subtitleDisplay.text == vo.subtitleText)
-        {
-            subtitleDisplay.text = "";
-        }
+        if (subtitleDisplay != null && subtitleDisplay.text == vo.subtitleText) subtitleDisplay.text = "";
     }
 
     public void ModifyAnxiety(float amount)
     {
         if (isGameOver) return;
-
         currentAnxiety += amount;
         currentAnxiety = Mathf.Clamp(currentAnxiety, 0, maxAnxiety);
-        UpdateUI();
-    }
-
-    private void UpdateUI()
-    {
         if (anxietyBarSlider != null) anxietyBarSlider.value = currentAnxiety;
     }
 
@@ -180,28 +208,26 @@ public class AnxietyMinigameManager : MonoBehaviour
         return 1f - (timeRemaining / timeLimit);
     }
 
-    private void WipeLeftoverNPCs()
+    private void WipeLeftoverObjects()
     {
         MinigameObject[] leftoverNpcs = FindObjectsOfType<MinigameObject>();
-        foreach (MinigameObject npc in leftoverNpcs)
-        {
-            Destroy(npc.gameObject);
-        }
+        foreach (MinigameObject npc in leftoverNpcs) Destroy(npc.gameObject);
+
+        PositiveThought[] thoughts = FindObjectsOfType<PositiveThought>();
+        foreach (PositiveThought thought in thoughts) Destroy(thought.gameObject);
     }
 
-    private void WinGame()
+    public void WinGame()
     {
+        if (isGameOver) return;
         isGameOver = true;
         PlayerPrefs.SetInt("MinigameCompleted", 1); 
+        WipeLeftoverObjects(); 
         
-        WipeLeftoverNPCs(); 
         if (mainHUD != null) mainHUD.SetActive(false);
-
         if (minigameBGM != null) minigameBGM.Stop();
         if (crowdAudioSource != null) crowdAudioSource.Stop();
         if (heartbeatAudio != null) heartbeatAudio.Stop(); 
-        
-        // ---> NEW: Cut off mid-game dialogue and subtitles if they win
         if (voiceOverSource != null) voiceOverSource.Stop();
         if (subtitleDisplay != null) subtitleDisplay.text = "";
         
@@ -212,23 +238,17 @@ public class AnxietyMinigameManager : MonoBehaviour
             fadeScreen.color = new Color(1f, 1f, 1f, 0f); 
             StartCoroutine(FadeRoutine(0f, 1f, () => SceneManager.LoadScene(concertSceneName)));
         }
-        else 
-        {
-            SceneManager.LoadScene(concertSceneName);
-        }
+        else SceneManager.LoadScene(concertSceneName);
     }
 
     private void LoseGame()
     {
         isGameOver = true;
+        WipeLeftoverObjects(); 
         
-        WipeLeftoverNPCs(); 
         if (mainHUD != null) mainHUD.SetActive(false);
-
         if (minigameBGM != null) minigameBGM.Stop();
         if (crowdAudioSource != null) crowdAudioSource.Stop();
-        
-        // ---> NEW: Cut off mid-game dialogue and subtitles if they lose
         if (voiceOverSource != null) voiceOverSource.Stop();
         if (subtitleDisplay != null) subtitleDisplay.text = "";
 
@@ -241,9 +261,7 @@ public class AnxietyMinigameManager : MonoBehaviour
         if (fadeScreen != null) 
         {
             fadeScreen.gameObject.SetActive(true);
-            Color c = Color.black;
-            c.a = 1f; 
-            fadeScreen.color = c;
+            Color c = Color.black; c.a = 1f; fadeScreen.color = c;
         }
 
         if (failureUIContainer != null) failureUIContainer.SetActive(true);
@@ -268,11 +286,17 @@ public class AnxietyMinigameManager : MonoBehaviour
             yield return null;
         }
 
-        c.a = endAlpha;
-        fadeScreen.color = c;
-
+        c.a = endAlpha; fadeScreen.color = c;
         if (endAlpha == 0f) fadeScreen.gameObject.SetActive(false);
-
         onComplete?.Invoke(); 
     }
+}
+
+[System.Serializable]
+public class TimedVoiceOver
+{
+    public float triggerTime; 
+    [TextArea(2, 3)] public string subtitleText;
+    public AudioClip clip;
+    [HideInInspector] public bool hasPlayed = false;
 }

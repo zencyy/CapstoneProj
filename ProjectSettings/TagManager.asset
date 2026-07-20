@@ -13,6 +13,9 @@ TagManager:
   - Tag_Mouse
   - Tag_Drawer1
   - Tag_Book1
+  - Tag_Frame
+  - Tag_Slides
+  - Tag_Slides2
   layers:
   - Default
   - TransparentFX
@@ -20,8 +23,8 @@ TagManager:
   - 
   - Water
   - UI
-  - 
-  - 
+  - InteractableItem
+  - EnvironmentFurniture
   - 
   - 
   - 

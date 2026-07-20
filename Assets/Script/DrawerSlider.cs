@@ -21,24 +21,23 @@ public class DrawerSlider : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         grabScript = GetComponent<UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable>();
         
-        // Remember exactly where the drawer is when the game starts (fully open)
+        // Record the open position so the player can't pull it out further than this
         startPos = transform.position;
     }
 
     void LateUpdate()
     {
-        // Don't do anything if it's already locked, or if the puzzle hasn't unlocked the grab script yet
+        // SAFETY CHECK: If the puzzle hasn't unlocked the grab script yet, do absolutely nothing.
         if (isLocked || closedTarget == null || grabScript == null || !grabScript.enabled) return;
 
         // 1. Prevent the drawer from being pulled OUT further than it started
         Vector3 directionToTarget = closedTarget.position - startPos;
         Vector3 currentDirection = transform.position - startPos;
 
-        // If the drawer moves in the opposite direction of the target (pulling outward), teleport it back!
         if (Vector3.Dot(directionToTarget, currentDirection) < 0)
         {
             transform.position = startPos;
-            if (rb != null) rb.linearVelocity = Vector3.zero; // Kill the pulling momentum
+            if (rb != null) rb.linearVelocity = Vector3.zero; 
         }
 
         // 2. Lock it permanently when it reaches the target inside the cabinet
@@ -53,22 +52,17 @@ public class DrawerSlider : MonoBehaviour
     {
         isLocked = true;
         
-        // 1. Disable the VR grab so the player's hand immediately lets go
         grabScript.enabled = false;
 
-        // 2. Freeze the physics so it stops moving completely
         if (rb != null)
         {
             rb.isKinematic = true;
             rb.linearVelocity = Vector3.zero;
         }
 
-        // 3. Teleport it that last tiny fraction of an inch for a perfect, flush close!
-        // We snap BOTH position and rotation so it perfectly aligns with the target corner
         transform.position = closedTarget.position;
         transform.rotation = closedTarget.rotation; 
 
-        // Play a satisfying shutting sound if you have one
         if (slamSound != null) slamSound.Play();
 
         Debug.Log("Drawer snapped flush into position and locked forever!");
