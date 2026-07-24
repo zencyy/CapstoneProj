@@ -2,21 +2,17 @@ using UnityEngine;
 
 public class FinishLine : MonoBehaviour
 {
-    public Transform playerCamera;
-    public float winDistance = 2.0f; // How close they need to get to the end
+    [Tooltip("Make sure your XR Origin is tagged with this exact word!")]
+    public string targetTag = "Player";
 
-    void Start()
+    private void OnTriggerEnter(Collider other)
     {
-        if (playerCamera == null && Camera.main != null) playerCamera = Camera.main.transform;
-    }
-
-    void Update()
-    {
-        if (playerCamera != null && AnxietyMinigameManager.Instance != null && !AnxietyMinigameManager.Instance.isGameOver)
+        // Check if the object that walked into this invisible wall is the Player
+        if (other.CompareTag(targetTag))
         {
-            // Only check Z distance to see if they crossed the line
-            if (playerCamera.position.z >= transform.position.z)
+            if (AnxietyMinigameManager.Instance != null && !AnxietyMinigameManager.Instance.isGameOver)
             {
+                Debug.Log("Player successfully crossed the finish line!");
                 AnxietyMinigameManager.Instance.WinGame();
             }
         }
