@@ -10,7 +10,7 @@ public class MinigameSpawner : MonoBehaviour
 
     [Header("Prefabs")]
     public GameObject[] npcPrefabs; 
-    public GameObject[] positiveThoughtPrefabs; // ---> NEW: Slot for collectibles
+    public GameObject[] positiveThoughtPrefabs; 
     public Transform[] lanes; 
     
     [Header("Difficulty Settings")]
@@ -22,6 +22,10 @@ public class MinigameSpawner : MonoBehaviour
     
     public float minSpeed = 5f; 
     public float maxSpeed = 12f; 
+
+    [Header("Cruel Difficulty")]
+    [Tooltip("At max difficulty, what is the chance (0.0 to 1.0) to spawn objects in ALL lanes?")]
+    public float maxWallSpawnChance = 0.3f; // 30% chance at the very end of the game
 
     void Start()
     {
@@ -40,8 +44,19 @@ public class MinigameSpawner : MonoBehaviour
             float progress = AnxietyMinigameManager.Instance != null ? AnxietyMinigameManager.Instance.GetTimeProgress() : 0f;
             bool isPhaseTwo = AnxietyMinigameManager.Instance != null && AnxietyMinigameManager.Instance.isPhaseTwo;
 
-            int objectsToSpawn = Random.Range(1, 3); 
-            objectsToSpawn = Mathf.Min(objectsToSpawn, lanes.Length);
+            // ---> NEW: Calculate the chance of a "Wall Spawn" based on current game progress
+            float currentWallChance = Mathf.Lerp(0f, maxWallSpawnChance, progress);
+            int objectsToSpawn = 1;
+
+            if (Random.value <= currentWallChance)
+            {
+                objectsToSpawn = lanes.Length; // Spawn in ALL lanes
+            }
+            else
+            {
+                objectsToSpawn = Random.Range(1, lanes.Length); // Normal spawn (leaves at least 1 gap)
+            }
+
             List<Transform> availableLanes = new List<Transform>(lanes);
 
             for (int i = 0; i < objectsToSpawn; i++)
@@ -52,13 +67,12 @@ public class MinigameSpawner : MonoBehaviour
                 Transform laneData = availableLanes[laneIndex];
                 availableLanes.RemoveAt(laneIndex);
 
-                // ---> NEW: Math to spawn the object ahead of the moving player
                 Vector3 dynamicSpawnPos = laneData.position;
                 dynamicSpawnPos.z = playerCamera.position.z + spawnDistanceAhead;
 
                 GameObject objToSpawn = null;
 
-                // ---> NEW: In Phase 2, 40% chance to spawn a Positive Thought instead of an NPC
+                // In Phase 2, 40% chance to spawn a Positive Thought instead of an NPC
                 if (isPhaseTwo && positiveThoughtPrefabs.Length > 0 && Random.value > 0.6f)
                 {
                     objToSpawn = positiveThoughtPrefabs[Random.Range(0, positiveThoughtPrefabs.Length)];
@@ -78,7 +92,7 @@ public class MinigameSpawner : MonoBehaviour
 
                     // If it's a Positive Thought
                     PositiveThought thoughtLogic = spawnedObj.GetComponent<PositiveThought>();
-                    if (thoughtLogic != null) thoughtLogic.speed = Mathf.Lerp(minSpeed, maxSpeed, progress) * 0.8f; // Thoughts move slightly slower
+                    if (thoughtLogic != null) thoughtLogic.speed = Mathf.Lerp(minSpeed, maxSpeed, progress) * 0.8f; 
                 }
             }
 
