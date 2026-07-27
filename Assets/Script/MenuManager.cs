@@ -42,4 +42,18 @@ public class MainMenuController : MonoBehaviour
         yield return new WaitForSeconds(0.5f);
         SceneManager.LoadScene(firstSceneName);
     }
+
+    public void QuitGame()
+    {
+        Debug.Log("Quit Game button pressed!");
+
+        // If we are running in the Unity Editor, stop playing
+        #if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+        
+        // If we are running a built version of the game, quit the application
+        #else
+        Application.Quit();
+        #endif
+    }
 }

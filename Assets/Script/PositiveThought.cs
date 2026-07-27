@@ -1,5 +1,5 @@
 using UnityEngine;
-using TMPro; // Required for 3D Text
+using TMPro; 
 
 public class PositiveThought : MonoBehaviour
 {
@@ -11,9 +11,7 @@ public class PositiveThought : MonoBehaviour
     public AudioClip collectSound;
 
     [Header("Dynamic Typography")]
-    [Tooltip("Drag the TextMeshPro 3D component on this prefab here")]
     public TMP_Text thoughtText;
-    [Tooltip("Add all the phrases you want to randomly appear!")]
     public string[] positivePhrases = {
         "Breathe",
         "I am safe",
@@ -23,28 +21,25 @@ public class PositiveThought : MonoBehaviour
     };
 
     [Header("Animation & Positioning")]
-    [Tooltip("How much higher to place the text above its normal spawn point.")]
     public float heightOffset = 1.0f;
-    [Tooltip("How fast it bobs up and down.")]
     public float bobSpeed = 2f; 
-    [Tooltip("How far up and down it travels.")]
     public float bobHeight = 0.2f;
+
+    [Header("UI Popup Setup")] // ---> NEW SECTION
+    [Tooltip("Drag your new PopupNotificationPrefab here")]
+    public GameObject popupPrefab;
 
     private Transform playerCamera;
     private bool hasCollected = false; 
-    private float baseY; // Tracks the center point for the bobbing math
+    private float baseY; 
 
     void Start()
     {
         if (Camera.main != null) playerCamera = Camera.main.transform;
 
-        // ---> NEW: Raise the text higher right when it spawns
         transform.position += new Vector3(0, heightOffset, 0);
-        
-        // Save this new height to use as the baseline for the bobbing calculation
         baseY = transform.position.y; 
 
-        // Randomly pick a phrase when this object spawns!
         if (thoughtText != null && positivePhrases.Length > 0)
         {
             int randomIndex = Random.Range(0, positivePhrases.Length);
@@ -54,22 +49,14 @@ public class PositiveThought : MonoBehaviour
 
     void Update()
     {
-        // ---> NEW: The Floating (Bobbing) Math
-        // 1. Calculate the standard forward movement
         Vector3 nextPos = transform.position + (movementDirection.normalized * speed * Time.deltaTime);
-        
-        // 2. Override the Y position using a Sine wave for a smooth floating effect
         nextPos.y = baseY + (Mathf.Sin(Time.time * bobSpeed) * bobHeight);
-        
-        // 3. Apply the final position
         transform.position = nextPos;
 
-        // 3. Collision Logic
         if (playerCamera != null)
         {
             if (!hasCollected)
             {
-                // We only check X and Z (flat) distance so the new height doesn't break the collection!
                 Vector2 objFlat = new Vector2(transform.position.x, transform.position.z);
                 Vector2 playerFlat = new Vector2(playerCamera.position.x, playerCamera.position.z);
 
@@ -87,12 +74,31 @@ public class PositiveThought : MonoBehaviour
                         AudioSource.PlayClipAtPoint(collectSound, playerCamera.position);
                     }
 
+                    // ---> NEW: Spawn the popup UI!
+                    if (popupPrefab != null && playerCamera != null)
+                    {
+                        // 1. Spawn it as a child of the Main Camera
+                        GameObject popup = Instantiate(popupPrefab, playerCamera);
+                        
+                        // 2. Force it to sit exactly in front of the player's eyes
+                        // X = 0 (Center), Y = -0.1 (Slightly below eye level), Z = 0.5 (Half a meter forward)
+                        popup.transform.localPosition = new Vector3(0, -0.1f, 0.5f);
+                        
+                        // 3. Ensure it perfectly matches the camera's rotation
+                        popup.transform.localRotation = Quaternion.identity;
+                        
+                        ThoughtNotification notificationScript = popup.GetComponent<ThoughtNotification>();
+                        if (notificationScript != null && notificationScript.popupText != null)
+                        {
+                            notificationScript.popupText.text = "+ " + thoughtText.text; 
+                        }
+                    }
+
                     Destroy(gameObject);
                     return; 
                 }
             }
 
-            // Cleanup behind player
             if (movementDirection.z < 0 && transform.position.z < playerCamera.position.z - 3f) Destroy(gameObject);
         }
         else Destroy(gameObject, 15f); 

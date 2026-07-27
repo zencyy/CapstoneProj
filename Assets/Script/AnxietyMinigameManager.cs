@@ -4,20 +4,18 @@ using TMPro;
 using UnityEngine.SceneManagement;
 using System.Collections;
 
-
-
 public class AnxietyMinigameManager : MonoBehaviour
 {
     public static AnxietyMinigameManager Instance;
+
+    [Header("Game State")]
+    public bool gameHasStarted = false;
 
     [Header("Anxiety Bar Settings")]
     public float maxAnxiety = 100f;
     public float currentAnxiety;
     public Slider anxietyBarSlider;
-    
-    [Tooltip("How much anxiety drains PER SECOND during the final 30 seconds")]
     public float phaseTwoDrainRate = 5f;
-
     public GameObject mainHUD; 
 
     [Header("Timer Settings")]
@@ -26,15 +24,21 @@ public class AnxietyMinigameManager : MonoBehaviour
     public TextMeshProUGUI timerText;
 
     [Header("Phase 2 UI")]
-    [Tooltip("Drag the Text element that tells the player to collect thoughts here")]
     public TMP_Text phaseTwoPromptText;
-    [Tooltip("How long the prompt stays on screen before fading out")]
     public float promptDisplayTime = 4.0f;
 
     [Header("Mid-Game Voiceovers")]
     public AudioSource voiceOverSource;
     public TMP_Text subtitleDisplay;
     public TimedVoiceOver[] timedVoiceOvers;
+
+    [Header("Win Sequence Settings")] // ---> NEW: Variables for the cinematic ending
+    public AudioClip winVoiceOverClip;
+    [TextArea(2, 3)]
+    public string winSubtitleText;
+    public AudioSource winCrowdAudioSource;
+    [Tooltip("How long to listen to the cheering black screen before loading the next scene")]
+    public float waitBeforeSceneLoad = 2.0f;
 
     [Header("Scene Transition")]
     public string concertSceneName = "ConcertScene_Part2";
@@ -77,7 +81,6 @@ public class AnxietyMinigameManager : MonoBehaviour
         if (mainHUD != null) mainHUD.SetActive(true);
         if (subtitleDisplay != null) subtitleDisplay.text = "";
         
-        // Hide the Phase 2 prompt at the start
         if (phaseTwoPromptText != null)
         {
             Color c = phaseTwoPromptText.color;
@@ -98,21 +101,19 @@ public class AnxietyMinigameManager : MonoBehaviour
     private void Update()
     {
         if (isGameOver) return;
+        if (!gameHasStarted) return;
 
         timeRemaining -= Time.deltaTime;
         timerText.text = "Time: " + Mathf.Ceil(timeRemaining).ToString() + "s";
 
-        // ---> NEW: Improved Phase 2 Trigger Logic
         if (timeRemaining <= 30f)
         {
-            // Only run the transition setup ONCE
             if (!isPhaseTwo)
             {
                 isPhaseTwo = true;
                 if (phaseTwoPromptText != null) StartCoroutine(DisplayPhaseTwoPrompt());
             }
             
-            // Constantly drain anxiety every frame during Phase 2
             ModifyAnxiety(-phaseTwoDrainRate * Time.deltaTime);
         }
 
@@ -140,7 +141,6 @@ public class AnxietyMinigameManager : MonoBehaviour
         if (currentAnxiety <= 0) LoseGame();
     }
 
-    // ---> NEW: Coroutine to smoothly fade the prompt in and out
     private IEnumerator DisplayPhaseTwoPrompt()
     {
         phaseTwoPromptText.gameObject.SetActive(true);
@@ -150,7 +150,6 @@ public class AnxietyMinigameManager : MonoBehaviour
         float timer = 0f;
         Color c = phaseTwoPromptText.color;
 
-        // Fade In
         while (timer < fadeTime)
         {
             timer += Time.deltaTime;
@@ -162,10 +161,8 @@ public class AnxietyMinigameManager : MonoBehaviour
         c.a = 1f;
         phaseTwoPromptText.color = c;
 
-        // Hold on screen
         yield return new WaitForSeconds(promptDisplayTime);
 
-        // Fade Out
         timer = 0f;
         while (timer < fadeTime)
         {
@@ -217,28 +214,67 @@ public class AnxietyMinigameManager : MonoBehaviour
         foreach (PositiveThought thought in thoughts) Destroy(thought.gameObject);
     }
 
+    // ---> AMENDED: WinGame now triggers the Coroutine sequence
     public void WinGame()
     {
         if (isGameOver) return;
         isGameOver = true;
         PlayerPrefs.SetInt("MinigameCompleted", 1); 
+        
+        StartCoroutine(WinSequenceCoroutine());
+    }
+
+    // ---> NEW: Cinematic Win Sequence Coroutine
+    private IEnumerator WinSequenceCoroutine()
+    {
+        // 1. Wipe enemies (Spawning stops automatically because isGameOver is true)
         WipeLeftoverObjects(); 
         
+        // 2. Shut off the HUD and in-game intense audio
         if (mainHUD != null) mainHUD.SetActive(false);
         if (minigameBGM != null) minigameBGM.Stop();
         if (crowdAudioSource != null) crowdAudioSource.Stop();
         if (heartbeatAudio != null) heartbeatAudio.Stop(); 
         if (voiceOverSource != null) voiceOverSource.Stop();
-        if (subtitleDisplay != null) subtitleDisplay.text = "";
         
-        if (reliefAudio != null) reliefAudio.Play();
+        // 3. Play the specific Win Dialogue & Subtitles
+        if (voiceOverSource != null && winVoiceOverClip != null)
+        {
+            voiceOverSource.PlayOneShot(winVoiceOverClip);
+        }
+        if (subtitleDisplay != null) subtitleDisplay.text = winSubtitleText;
+
+        // Wait for the exact length of the voice over before doing anything else
+        float voWaitTime = (winVoiceOverClip != null) ? winVoiceOverClip.length : 3.0f;
+        yield return new WaitForSeconds(voWaitTime);
+        
+        // Clear the subtitle
+        if (subtitleDisplay != null) subtitleDisplay.text = "";
+
+        // 4. Fade to Black and play the cheering crowd
+        if (winCrowdAudioSource != null) winCrowdAudioSource.Play();
 
         if (fadeScreen != null) 
         {
-            fadeScreen.color = new Color(1f, 1f, 1f, 0f); 
-            StartCoroutine(FadeRoutine(0f, 1f, () => SceneManager.LoadScene(concertSceneName)));
+            fadeScreen.gameObject.SetActive(true);
+            float timer = 0f;
+            Color startColor = new Color(0f, 0f, 0f, 0f); // Clear
+            Color endColor = new Color(0f, 0f, 0f, 1f);   // Solid Black
+
+            while (timer < fadeDuration)
+            {
+                timer += Time.deltaTime;
+                fadeScreen.color = Color.Lerp(startColor, endColor, timer / fadeDuration);
+                yield return null;
+            }
+            fadeScreen.color = endColor;
         }
-        else SceneManager.LoadScene(concertSceneName);
+
+        // 5. Let the player sit in the dark listening to the cheering crowd for a moment
+        yield return new WaitForSeconds(waitBeforeSceneLoad);
+
+        // 6. Finally transition to the next scene
+        SceneManager.LoadScene(concertSceneName);
     }
 
     private void LoseGame()
@@ -270,6 +306,12 @@ public class AnxietyMinigameManager : MonoBehaviour
     public void RestartMinigame()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    public void StartMinigame()
+    {
+        gameHasStarted = true;
+        Debug.Log("Intro finished: Timer and Meter have now started!");
     }
 
     private IEnumerator FadeRoutine(float startAlpha, float endAlpha, System.Action onComplete)
