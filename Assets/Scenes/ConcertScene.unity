@@ -365,7 +365,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 101889927}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0.619}
+  m_LocalPosition: {x: 0, y: 0, z: 0.8340002}
   m_LocalScale: {x: 0.001, y: 0.001, z: 0.001}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -1799,7 +1799,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1717954561962503726, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.703
+      value: 0.179
       objectReference: {fileID: 0}
     - target: {fileID: 1717954561962503726, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
       propertyPath: m_LocalPosition.z
@@ -3436,11 +3436,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 80e578b2d7250b542b1c305c12391f3e, type: 3}
---- !u!1 &1243477717 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 58445280694286476, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
-  m_PrefabInstance: {fileID: 441087506}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1265709195 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -7832725922948017764, guid: 2e9aba95c5b3c16419f35d9b71b9112b, type: 3}
@@ -3628,9 +3623,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 372ec70556ef41849a7c8a5fd715a67a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ConcertIntroFader
+  forcePlayIntro: 1
   blackScreen: {fileID: 1302403712}
   titleText: {fileID: 381315596}
-  locomotionSystem: {fileID: 1243477717}
+  locomotionSystem: {fileID: 2062676538}
   displayTime: 3
   fadeOutDuration: 2.5
   dialogueDarkenAlpha: 0.7
@@ -4239,7 +4235,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1758242183}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0.446}
+  m_LocalPosition: {x: 0, y: 0, z: 0.647}
   m_LocalScale: {x: 0.001, y: 0.001, z: 0.001}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -5077,6 +5073,11 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: -4981230140430967878, guid: d084fc10dc4a7bb43bc8aa65d9eaad6a, type: 3}
+--- !u!1 &2062676538 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5167925059111895691, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
+  m_PrefabInstance: {fileID: 441087506}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &2073709185 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -4556251874479090763, guid: 8e02091f5ec571745be2b809e812eee8, type: 3}

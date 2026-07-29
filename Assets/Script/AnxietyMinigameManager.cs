@@ -3,6 +3,9 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
 using System.Collections;
+// ---> NEW: Required namespaces for Post Processing
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal; 
 
 public class AnxietyMinigameManager : MonoBehaviour
 {
@@ -32,12 +35,21 @@ public class AnxietyMinigameManager : MonoBehaviour
     public TMP_Text subtitleDisplay;
     public TimedVoiceOver[] timedVoiceOvers;
 
-    [Header("Win Sequence Settings")] // ---> NEW: Variables for the cinematic ending
+    [Header("Post Processing (VFX)")] // ---> NEW: Variables for Chromatic Aberration
+    [Tooltip("Drag your Global Volume object here")]
+    public Volume globalVolume;
+    [Tooltip("How intense the color splitting gets during the voice over (0 to 1)")]
+    public float targetChromaticIntensity = 1f;
+    [Tooltip("How fast the visual effect fades in and out")]
+    public float vfxFadeDuration = 1.0f;
+    
+    private ChromaticAberration chromaticAberration;
+
+    [Header("Win Sequence Settings")] 
     public AudioClip winVoiceOverClip;
     [TextArea(2, 3)]
     public string winSubtitleText;
     public AudioSource winCrowdAudioSource;
-    [Tooltip("How long to listen to the cheering black screen before loading the next scene")]
     public float waitBeforeSceneLoad = 2.0f;
 
     [Header("Scene Transition")]
@@ -95,6 +107,18 @@ public class AnxietyMinigameManager : MonoBehaviour
         {
             fadeScreen.color = Color.black;
             StartCoroutine(FadeRoutine(1f, 0f, null));
+        }
+
+        // ---> NEW: Try to find the Chromatic Aberration effect inside your Volume Profile
+        if (globalVolume != null && globalVolume.profile != null)
+        {
+            globalVolume.profile.TryGet(out chromaticAberration);
+            
+            // Ensure it starts at zero intensity
+            if (chromaticAberration != null)
+            {
+                chromaticAberration.intensity.value = 0f;
+            }
         }
     }
 
@@ -186,10 +210,35 @@ public class AnxietyMinigameManager : MonoBehaviour
         }
         if (subtitleDisplay != null) subtitleDisplay.text = vo.subtitleText;
 
+        // ---> NEW: Fade IN the Chromatic Aberration at the start of the Voice Over
+        if (chromaticAberration != null)
+        {
+            StartCoroutine(AnimateChromaticAberration(chromaticAberration.intensity.value, targetChromaticIntensity, vfxFadeDuration));
+        }
+
         float waitTime = (vo.clip != null) ? vo.clip.length : 2.0f;
         yield return new WaitForSeconds(waitTime);
 
+        // ---> NEW: Fade OUT the Chromatic Aberration when the Voice Over finishes
+        if (chromaticAberration != null)
+        {
+            StartCoroutine(AnimateChromaticAberration(chromaticAberration.intensity.value, 0f, vfxFadeDuration));
+        }
+
         if (subtitleDisplay != null && subtitleDisplay.text == vo.subtitleText) subtitleDisplay.text = "";
+    }
+
+    // ---> NEW: Mini-Coroutine to smoothly transition the visual effect intensity
+    private IEnumerator AnimateChromaticAberration(float startVal, float endVal, float duration)
+    {
+        float timer = 0f;
+        while (timer < duration)
+        {
+            timer += Time.deltaTime;
+            chromaticAberration.intensity.value = Mathf.Lerp(startVal, endVal, timer / duration);
+            yield return null;
+        }
+        chromaticAberration.intensity.value = endVal;
     }
 
     public void ModifyAnxiety(float amount)
@@ -214,7 +263,6 @@ public class AnxietyMinigameManager : MonoBehaviour
         foreach (PositiveThought thought in thoughts) Destroy(thought.gameObject);
     }
 
-    // ---> AMENDED: WinGame now triggers the Coroutine sequence
     public void WinGame()
     {
         if (isGameOver) return;
@@ -224,42 +272,44 @@ public class AnxietyMinigameManager : MonoBehaviour
         StartCoroutine(WinSequenceCoroutine());
     }
 
-    // ---> NEW: Cinematic Win Sequence Coroutine
     private IEnumerator WinSequenceCoroutine()
     {
-        // 1. Wipe enemies (Spawning stops automatically because isGameOver is true)
         WipeLeftoverObjects(); 
         
-        // 2. Shut off the HUD and in-game intense audio
-        if (mainHUD != null) mainHUD.SetActive(false);
+        // Hide specific UI elements instead of the whole HUD (Keeps subtitles working!)
+        if (anxietyBarSlider != null) anxietyBarSlider.gameObject.SetActive(false);
+        if (timerText != null) timerText.gameObject.SetActive(false);
+        if (phaseTwoPromptText != null) phaseTwoPromptText.gameObject.SetActive(false);
+
         if (minigameBGM != null) minigameBGM.Stop();
         if (crowdAudioSource != null) crowdAudioSource.Stop();
         if (heartbeatAudio != null) heartbeatAudio.Stop(); 
         if (voiceOverSource != null) voiceOverSource.Stop();
         
-        // 3. Play the specific Win Dialogue & Subtitles
         if (voiceOverSource != null && winVoiceOverClip != null)
         {
             voiceOverSource.PlayOneShot(winVoiceOverClip);
         }
-        if (subtitleDisplay != null) subtitleDisplay.text = winSubtitleText;
+        
+        if (subtitleDisplay != null) 
+        {
+            subtitleDisplay.gameObject.SetActive(true);
+            subtitleDisplay.text = winSubtitleText;
+        }
 
-        // Wait for the exact length of the voice over before doing anything else
         float voWaitTime = (winVoiceOverClip != null) ? winVoiceOverClip.length : 3.0f;
         yield return new WaitForSeconds(voWaitTime);
         
-        // Clear the subtitle
         if (subtitleDisplay != null) subtitleDisplay.text = "";
 
-        // 4. Fade to Black and play the cheering crowd
         if (winCrowdAudioSource != null) winCrowdAudioSource.Play();
 
         if (fadeScreen != null) 
         {
             fadeScreen.gameObject.SetActive(true);
             float timer = 0f;
-            Color startColor = new Color(0f, 0f, 0f, 0f); // Clear
-            Color endColor = new Color(0f, 0f, 0f, 1f);   // Solid Black
+            Color startColor = new Color(0f, 0f, 0f, 0f); 
+            Color endColor = new Color(0f, 0f, 0f, 1f);   
 
             while (timer < fadeDuration)
             {
@@ -270,10 +320,7 @@ public class AnxietyMinigameManager : MonoBehaviour
             fadeScreen.color = endColor;
         }
 
-        // 5. Let the player sit in the dark listening to the cheering crowd for a moment
         yield return new WaitForSeconds(waitBeforeSceneLoad);
-
-        // 6. Finally transition to the next scene
         SceneManager.LoadScene(concertSceneName);
     }
 

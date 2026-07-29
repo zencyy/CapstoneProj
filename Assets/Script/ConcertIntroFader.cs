@@ -3,9 +3,12 @@ using UnityEngine.UI;
 using TMPro;
 using System.Collections;
 
-
 public class ConcertIntroFader : MonoBehaviour
 {
+    [Header("Debug Settings")]
+    [Tooltip("Check this box to force the intro to play, ignoring saved PlayerPrefs.")]
+    public bool forcePlayIntro = true; // ---> NEW: Check this in the Inspector!
+
     [Header("Intro UI References")]
     public Image blackScreen;
     public TMP_Text titleText;
@@ -47,7 +50,8 @@ public class ConcertIntroFader : MonoBehaviour
         // Check if we are returning from the minigame
         int minigameStatus = PlayerPrefs.GetInt("MinigameCompleted", 0);
 
-        if (minigameStatus == 1)
+        // ---> AMENDED: Now it checks if you have forced the intro to play for testing
+        if (minigameStatus == 1 && !forcePlayIntro)
         {
             // We just beat the minigame! Skip the intro and just fade in.
             StartCoroutine(ReturnFromMinigameSequence());

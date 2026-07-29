@@ -25,7 +25,14 @@ public class MinigameSpawner : MonoBehaviour
 
     [Header("Cruel Difficulty")]
     [Tooltip("At max difficulty, what is the chance (0.0 to 1.0) to spawn objects in ALL lanes?")]
-    public float maxWallSpawnChance = 0.3f; // 30% chance at the very end of the game
+    public float maxWallSpawnChance = 0.3f; 
+
+    [Header("Dynamic Spawning")] 
+    [Tooltip("How much to stagger the objects forward/backward so they don't form a perfect horizontal line")]
+    public float zStaggerAmount = 3.0f; 
+    
+    [Tooltip("Maximum delay in seconds before an individual object spawns within a wave")]
+    public float maxTimeStagger = 0.4f; // ---> NEW: Time delay variable
 
     void Start()
     {
@@ -44,17 +51,16 @@ public class MinigameSpawner : MonoBehaviour
             float progress = AnxietyMinigameManager.Instance != null ? AnxietyMinigameManager.Instance.GetTimeProgress() : 0f;
             bool isPhaseTwo = AnxietyMinigameManager.Instance != null && AnxietyMinigameManager.Instance.isPhaseTwo;
 
-            // ---> NEW: Calculate the chance of a "Wall Spawn" based on current game progress
             float currentWallChance = Mathf.Lerp(0f, maxWallSpawnChance, progress);
             int objectsToSpawn = 1;
 
             if (Random.value <= currentWallChance)
             {
-                objectsToSpawn = lanes.Length; // Spawn in ALL lanes
+                objectsToSpawn = lanes.Length; 
             }
             else
             {
-                objectsToSpawn = Random.Range(1, lanes.Length); // Normal spawn (leaves at least 1 gap)
+                objectsToSpawn = Random.Range(1, lanes.Length); 
             }
 
             List<Transform> availableLanes = new List<Transform>(lanes);
@@ -67,12 +73,8 @@ public class MinigameSpawner : MonoBehaviour
                 Transform laneData = availableLanes[laneIndex];
                 availableLanes.RemoveAt(laneIndex);
 
-                Vector3 dynamicSpawnPos = laneData.position;
-                dynamicSpawnPos.z = playerCamera.position.z + spawnDistanceAhead;
-
                 GameObject objToSpawn = null;
 
-                // In Phase 2, 40% chance to spawn a Positive Thought instead of an NPC
                 if (isPhaseTwo && positiveThoughtPrefabs.Length > 0 && Random.value > 0.6f)
                 {
                     objToSpawn = positiveThoughtPrefabs[Random.Range(0, positiveThoughtPrefabs.Length)];
@@ -84,20 +86,42 @@ public class MinigameSpawner : MonoBehaviour
 
                 if (objToSpawn != null)
                 {
-                    GameObject spawnedObj = Instantiate(objToSpawn, dynamicSpawnPos, laneData.rotation);
-
-                    // If it's an NPC
-                    MinigameObject npcLogic = spawnedObj.GetComponent<MinigameObject>();
-                    if (npcLogic != null) npcLogic.speed = Mathf.Lerp(minSpeed, maxSpeed, progress);
-
-                    // If it's a Positive Thought
-                    PositiveThought thoughtLogic = spawnedObj.GetComponent<PositiveThought>();
-                    if (thoughtLogic != null) thoughtLogic.speed = Mathf.Lerp(minSpeed, maxSpeed, progress) * 0.8f; 
+                    // ---> NEW: Assign a random time delay and pass the instantiation to a separate Coroutine
+                    float randomDelay = Random.Range(0f, maxTimeStagger);
+                    StartCoroutine(SpawnSingleObjectDelayed(objToSpawn, laneData, progress, randomDelay));
                 }
             }
 
             float currentWaitTime = Mathf.Lerp(maxSpawnDelay, minSpawnDelay, progress);
             yield return new WaitForSeconds(currentWaitTime);
         }
+    }
+
+    // ---> NEW: Mini-Coroutine that handles the delayed spawn and math for individual objects
+    private IEnumerator SpawnSingleObjectDelayed(GameObject prefab, Transform laneData, float progress, float delay)
+    {
+        // 1. Wait for the staggered time
+        if (delay > 0f)
+        {
+            yield return new WaitForSeconds(delay);
+        }
+
+        // 2. Double-check the game didn't end while we were waiting
+        if (AnxietyMinigameManager.Instance != null && AnxietyMinigameManager.Instance.isGameOver) yield break;
+        if (prefab == null || laneData == null) yield break;
+
+        // 3. Calculate the spawn position EXACTLY at the moment of spawning so it adapts to the moving headset
+        Vector3 dynamicSpawnPos = laneData.position;
+        float randomOffset = Random.Range(-zStaggerAmount, zStaggerAmount);
+        dynamicSpawnPos.z = playerCamera.position.z + spawnDistanceAhead + randomOffset;
+
+        // 4. Instantiate and configure speeds
+        GameObject spawnedObj = Instantiate(prefab, dynamicSpawnPos, laneData.rotation);
+
+        MinigameObject npcLogic = spawnedObj.GetComponent<MinigameObject>();
+        if (npcLogic != null) npcLogic.speed = Mathf.Lerp(minSpeed, maxSpeed, progress);
+
+        PositiveThought thoughtLogic = spawnedObj.GetComponent<PositiveThought>();
+        if (thoughtLogic != null) thoughtLogic.speed = Mathf.Lerp(minSpeed, maxSpeed, progress) * 0.8f; 
     }
 }

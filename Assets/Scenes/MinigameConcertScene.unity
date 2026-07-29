@@ -133,6 +133,7 @@ GameObject:
   - component: {fileID: 2756312}
   - component: {fileID: 2756313}
   - component: {fileID: 2756314}
+  - component: {fileID: 2756316}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -169,9 +170,16 @@ MonoBehaviour:
     subtitleText: My chest... I can't get any air. I'm going to pass out.
     clip: {fileID: 0}
     hasPlayed: 0
+  - triggerTime: 35
+    subtitleText: My chest... I can't get any air. I'm going to pass out.
+    clip: {fileID: 0}
+    hasPlayed: 0
+  globalVolume: {fileID: 822363708}
+  targetChromaticIntensity: 1
+  vfxFadeDuration: 1
   winVoiceOverClip: {fileID: 0}
   winSubtitleText: Finally here.. I can enjoy the concert now
-  winCrowdAudioSource: {fileID: 0}
+  winCrowdAudioSource: {fileID: 2756316}
   waitBeforeSceneLoad: 2
   concertSceneName: AfterParty
   fadeScreen: {fileID: 2101304212}
@@ -405,7 +413,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: 9e02dcb27bcce3243b0ed9df9fb8ea85, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 1
+  m_Volume: 0.227
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -511,6 +519,103 @@ MonoBehaviour:
   minigameSpawner: {fileID: 1740231367}
   fadeDuration: 2
   initialDelay: 1
+--- !u!82 &2756316
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2756308}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 8300000, guid: 2121d4e9866fda94995a7dd32df5117b, type: 3}
+  m_PlayOnAwake: 0
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!64 &5063063
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -961,7 +1066,7 @@ Transform:
   m_GameObject: {fileID: 231775525}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -4.99, y: 0.56, z: 29.483002}
+  m_LocalPosition: {x: -4.71, y: 0.56, z: 29.483002}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1569,6 +1674,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6232745470614056090, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
       propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7032098985301169009, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
+      propertyPath: m_RenderPostProcessing
       value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -5960,6 +6069,8 @@ MonoBehaviour:
   minSpeed: 15
   maxSpeed: 20
   maxWallSpawnChance: 0.7
+  zStaggerAmount: 3
+  maxTimeStagger: 0.4
 --- !u!4 &1740231368
 Transform:
   m_ObjectHideFlags: 0
