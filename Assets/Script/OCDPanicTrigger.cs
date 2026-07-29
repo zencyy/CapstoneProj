@@ -4,17 +4,20 @@ using TMPro;
 using System.Collections;
 
 // 1. NEW: We create a custom data container to hold both the text and its timing
-[System.Serializable]
-public struct SubtitleLine
-{
-    [TextArea(2, 3)]
-    public string text;
-    [Tooltip("How many seconds this specific line should stay on screen")]
-    public float duration;
-}
+
 
 public class OCDPanicTrigger : MonoBehaviour
 {
+
+    [System.Serializable]
+    public struct SubtitleLine
+    {
+        [TextArea(2, 3)]
+        public string text;
+        [Tooltip("How many seconds this specific line should stay on screen")]
+        public float duration;
+    }
+    
     [Header("UI References")]
     public Image darkScreenImage;
     public TMP_Text subtitleText;

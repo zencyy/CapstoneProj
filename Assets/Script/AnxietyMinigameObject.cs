@@ -11,9 +11,12 @@ public class MinigameObject : MonoBehaviour
     [Tooltip("If the model faces away from you, set this to 180. If sideways, try 90 or -90.")]
     public float modelRotationOffset = 0f;
 
-    [Header("Hit Detection")]
+    [Header("Hit Detection & Penalty")]
     public float hitRadius = 0.6f;
     public AudioClip hitSound;
+    
+    [Tooltip("How far backward (in meters) the player is shoved when they hit this NPC")]
+    public float pushbackDistance = 2.5f; // ---> NEW: Pushback distance
 
     private Animator anim;
     private Transform playerCamera;
@@ -24,7 +27,6 @@ public class MinigameObject : MonoBehaviour
         anim = GetComponentInChildren<Animator>();
         if (Camera.main != null) playerCamera = Camera.main.transform;
 
-        // --- NEW: FORCED ROTATION ---
         // Make the NPC visually turn its body to face the direction it is walking
         if (movementDirection != Vector3.zero)
         {
@@ -60,6 +62,15 @@ public class MinigameObject : MonoBehaviour
                     if (hitSound != null)
                     {
                         AudioSource.PlayClipAtPoint(hitSound, playerCamera.position);
+                    }
+
+                    // ---> NEW: Pushback Logic
+                    // .root grabs the very top parent object (your XR Origin) so the whole body moves, not just the head
+                    Transform xrRig = playerCamera.root; 
+                    if (xrRig != null)
+                    {
+                        xrRig.position += new Vector3(0, 0, -pushbackDistance);
+                        Debug.Log("Player hit an NPC and was pushed back!");
                     }
 
                     Destroy(gameObject);
