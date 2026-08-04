@@ -3,7 +3,6 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
 using System.Collections;
-// ---> NEW: Required namespaces for Post Processing
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal; 
 
@@ -13,6 +12,10 @@ public class AnxietyMinigameManager : MonoBehaviour
 
     [Header("Game State")]
     public bool gameHasStarted = false;
+
+    [Header("Player Control")]
+    [Tooltip("Drag your XR Locomotion or movement script here")]
+    public MonoBehaviour playerMovementScript;
 
     [Header("Anxiety Bar Settings")]
     public float maxAnxiety = 100f;
@@ -35,15 +38,19 @@ public class AnxietyMinigameManager : MonoBehaviour
     public TMP_Text subtitleDisplay;
     public TimedVoiceOver[] timedVoiceOvers;
 
-    [Header("Post Processing (VFX)")] // ---> NEW: Variables for Chromatic Aberration
-    [Tooltip("Drag your Global Volume object here")]
+    [Header("Post Processing (VFX)")] 
     public Volume globalVolume;
     [Tooltip("How intense the color splitting gets during the voice over (0 to 1)")]
     public float targetChromaticIntensity = 1f;
-    [Tooltip("How fast the visual effect fades in and out")]
+    
+    // ---> NEW: Vignette target intensity
+    [Tooltip("How intense the tunnel vision vignette gets (0 to 1)")]
+    public float targetVignetteIntensity = 0.8f; 
+    
     public float vfxFadeDuration = 1.0f;
     
     private ChromaticAberration chromaticAberration;
+    private Vignette vignette; // ---> NEW: Vignette reference
 
     [Header("Win Sequence Settings")] 
     public AudioClip winVoiceOverClip;
@@ -66,6 +73,11 @@ public class AnxietyMinigameManager : MonoBehaviour
     [Header("Failure UI")]
     public GameObject failureUIContainer; 
 
+    [Header("Collision UI")] // Add this near your other UI headers
+    public Image hitFlashScreen;
+    public Color hitFlashColor = new Color(0.8f, 0f, 0f, 0.6f); // Dark red, semi-transparent
+    public float flashDuration = 0.5f;
+
     [HideInInspector] public bool isGameOver = false;
     [HideInInspector] public bool isPhaseTwo = false;
 
@@ -76,6 +88,42 @@ public class AnxietyMinigameManager : MonoBehaviour
     {
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
+    }
+
+    public void TriggerHitFlash()
+    {
+        if (hitFlashScreen != null)
+        {
+            StopCoroutine(HitFlashCoroutine()); // Stop any existing flash
+            StartCoroutine(HitFlashCoroutine());
+        }
+    }
+
+    private IEnumerator HitFlashCoroutine()
+    {
+        hitFlashScreen.gameObject.SetActive(true);
+        
+        // Instantly snap to the harsh color
+        hitFlashScreen.color = hitFlashColor;
+
+        float timer = 0f;
+        while (timer < flashDuration)
+        {
+            timer += Time.deltaTime;
+            
+            // Smoothly fade the alpha back to 0
+            Color c = hitFlashColor;
+            c.a = Mathf.Lerp(hitFlashColor.a, 0f, timer / flashDuration);
+            hitFlashScreen.color = c;
+            
+            yield return null;
+        }
+
+        // Ensure it is completely invisible at the end
+        Color finalColor = hitFlashColor;
+        finalColor.a = 0f;
+        hitFlashScreen.color = finalColor;
+        hitFlashScreen.gameObject.SetActive(false);
     }
 
     private void Start()
@@ -109,15 +157,19 @@ public class AnxietyMinigameManager : MonoBehaviour
             StartCoroutine(FadeRoutine(1f, 0f, null));
         }
 
-        // ---> NEW: Try to find the Chromatic Aberration effect inside your Volume Profile
         if (globalVolume != null && globalVolume.profile != null)
         {
             globalVolume.profile.TryGet(out chromaticAberration);
-            
-            // Ensure it starts at zero intensity
             if (chromaticAberration != null)
             {
                 chromaticAberration.intensity.value = 0f;
+            }
+
+            // ---> NEW: Get the Vignette and ensure it starts at 0
+            globalVolume.profile.TryGet(out vignette);
+            if (vignette != null)
+            {
+                vignette.intensity.value = 0f;
             }
         }
     }
@@ -203,6 +255,8 @@ public class AnxietyMinigameManager : MonoBehaviour
 
     private IEnumerator PlayVoiceOverLine(TimedVoiceOver vo)
     {
+        if (playerMovementScript != null) playerMovementScript.enabled = false;
+
         if (voiceOverSource != null && vo.clip != null)
         {
             voiceOverSource.Stop(); 
@@ -210,35 +264,44 @@ public class AnxietyMinigameManager : MonoBehaviour
         }
         if (subtitleDisplay != null) subtitleDisplay.text = vo.subtitleText;
 
-        // ---> NEW: Fade IN the Chromatic Aberration at the start of the Voice Over
-        if (chromaticAberration != null)
-        {
-            StartCoroutine(AnimateChromaticAberration(chromaticAberration.intensity.value, targetChromaticIntensity, vfxFadeDuration));
-        }
+        // ---> AMENDED: Fade IN both effects
+        StartCoroutine(AnimateVisualEffects(true, vfxFadeDuration));
 
         float waitTime = (vo.clip != null) ? vo.clip.length : 2.0f;
         yield return new WaitForSeconds(waitTime);
 
-        // ---> NEW: Fade OUT the Chromatic Aberration when the Voice Over finishes
-        if (chromaticAberration != null)
-        {
-            StartCoroutine(AnimateChromaticAberration(chromaticAberration.intensity.value, 0f, vfxFadeDuration));
-        }
+        // ---> AMENDED: Fade OUT both effects
+        StartCoroutine(AnimateVisualEffects(false, vfxFadeDuration));
 
         if (subtitleDisplay != null && subtitleDisplay.text == vo.subtitleText) subtitleDisplay.text = "";
+
+        if (playerMovementScript != null) playerMovementScript.enabled = true;
     }
 
-    // ---> NEW: Mini-Coroutine to smoothly transition the visual effect intensity
-    private IEnumerator AnimateChromaticAberration(float startVal, float endVal, float duration)
+    // ---> AMENDED: Coroutine now handles both Chromatic Aberration and Vignette
+    private IEnumerator AnimateVisualEffects(bool isFadingIn, float duration)
     {
         float timer = 0f;
+        
+        float startCA = chromaticAberration != null ? chromaticAberration.intensity.value : 0f;
+        float endCA = isFadingIn ? targetChromaticIntensity : 0f;
+        
+        float startVig = vignette != null ? vignette.intensity.value : 0f;
+        float endVig = isFadingIn ? targetVignetteIntensity : 0f;
+
         while (timer < duration)
         {
             timer += Time.deltaTime;
-            chromaticAberration.intensity.value = Mathf.Lerp(startVal, endVal, timer / duration);
+            float t = timer / duration;
+            
+            if (chromaticAberration != null) chromaticAberration.intensity.value = Mathf.Lerp(startCA, endCA, t);
+            if (vignette != null) vignette.intensity.value = Mathf.Lerp(startVig, endVig, t);
+            
             yield return null;
         }
-        chromaticAberration.intensity.value = endVal;
+        
+        if (chromaticAberration != null) chromaticAberration.intensity.value = endCA;
+        if (vignette != null) vignette.intensity.value = endVig;
     }
 
     public void ModifyAnxiety(float amount)
@@ -276,7 +339,6 @@ public class AnxietyMinigameManager : MonoBehaviour
     {
         WipeLeftoverObjects(); 
         
-        // Hide specific UI elements instead of the whole HUD (Keeps subtitles working!)
         if (anxietyBarSlider != null) anxietyBarSlider.gameObject.SetActive(false);
         if (timerText != null) timerText.gameObject.SetActive(false);
         if (phaseTwoPromptText != null) phaseTwoPromptText.gameObject.SetActive(false);
@@ -348,7 +410,7 @@ public class AnxietyMinigameManager : MonoBehaviour
         }
 
         if (failureUIContainer != null) failureUIContainer.SetActive(true);
-    }
+    } 
 
     public void RestartMinigame()
     {
@@ -381,6 +443,8 @@ public class AnxietyMinigameManager : MonoBehaviour
     }
 }
 
+
+
 [System.Serializable]
 public class TimedVoiceOver
 {
@@ -389,3 +453,29 @@ public class TimedVoiceOver
     public AudioClip clip;
     [HideInInspector] public bool hasPlayed = false;
 }
+
+/*private void LoseGame()
+    {
+        isGameOver = true;
+        WipeLeftoverObjects(); 
+        
+        if (mainHUD != null) mainHUD.SetActive(false);
+        if (minigameBGM != null) minigameBGM.Stop();
+        if (crowdAudioSource != null) crowdAudioSource.Stop();
+        if (voiceOverSource != null) voiceOverSource.Stop();
+        if (subtitleDisplay != null) subtitleDisplay.text = "";
+
+        if (heartbeatAudio != null && !heartbeatAudio.isPlaying) 
+        {
+            heartbeatAudio.loop = true;
+            heartbeatAudio.Play();
+        }
+
+        if (fadeScreen != null) 
+        {
+            fadeScreen.gameObject.SetActive(true);
+            Color c = Color.black; c.a = 1f; fadeScreen.color = c;
+        }
+
+        if (failureUIContainer != null) failureUIContainer.SetActive(true);
+    } */

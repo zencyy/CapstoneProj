@@ -16,7 +16,7 @@ public class MinigameObject : MonoBehaviour
     public AudioClip hitSound;
     
     [Tooltip("How far backward (in meters) the player is shoved when they hit this NPC")]
-    public float pushbackDistance = 2.5f; // ---> NEW: Pushback distance
+    public float pushbackDistance = 2.5f; 
 
     private Animator anim;
     private Transform playerCamera;
@@ -56,7 +56,11 @@ public class MinigameObject : MonoBehaviour
                     
                     if (AnxietyMinigameManager.Instance != null)
                     {
+                        // Drop the anxiety meter
                         AnxietyMinigameManager.Instance.ModifyAnxiety(effectAmount);
+                        
+                        // ---> NEW: Trigger the red panic flash on the UI!
+                        AnxietyMinigameManager.Instance.TriggerHitFlash();
                     }
 
                     if (hitSound != null)
@@ -64,7 +68,7 @@ public class MinigameObject : MonoBehaviour
                         AudioSource.PlayClipAtPoint(hitSound, playerCamera.position);
                     }
 
-                    // ---> NEW: Pushback Logic
+                    // Pushback Logic
                     // .root grabs the very top parent object (your XR Origin) so the whole body moves, not just the head
                     Transform xrRig = playerCamera.root; 
                     if (xrRig != null)
