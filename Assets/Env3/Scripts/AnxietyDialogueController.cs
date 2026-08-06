@@ -65,22 +65,27 @@ namespace Env3.Anxiety
 
         [Header("Panic stage")]
         public float panicDuration = 10f;
-        public int maxPanicChoices = 55;
+        public int maxPanicChoices = 72;
         [Tooltip("Clicking during the panic stage does not answer anything. It spawns this many more.")]
         public int extraChoicesPerClick = 3;
         [Tooltip("Anxiety at or above this makes MainDude close the gap.")]
         [Range(0f, 1f)] public float leanInAt = 0.75f;
 
+        [Header("Shared project styling")]
+        [Tooltip("Font for the subtitle and the stage 1-3 answers, matching the subtitles in the project's other scenes. The panic flood keeps its own font.")]
+        public TMP_FontAsset dialogueFont;
+
         [Header("Subtitle bar")]
         [Tooltip("Height above the bottom of the canvas that the bar sits at.")]
         public float subtitleBottomMargin = 70f;
         [Tooltip("The plate hugs the text between these widths.")]
-        public Vector2 subtitleWidthRange = new Vector2(360f, 1280f);
-        public float subtitleMinHeight = 92f;
+        public Vector2 subtitleWidthRange = new Vector2(0f, 1280f);
+        public float subtitleMinHeight = 0f;
         [Tooltip("Space between the text and the edge of the plate: x horizontal, y vertical.")]
-        public Vector2 subtitlePadding = new Vector2(38f, 20f);
-        public float subtitleFontSize = 40f;
-        public Color subtitlePlateColor = new Color(0.02f, 0.02f, 0.03f, 0.66f);
+        public Vector2 subtitlePadding = new Vector2(10f, 4f);
+        public float subtitleFontSize = 36f;
+        [Tooltip("Plain black plate, as used by the subtitles elsewhere in the project. Carried a little more opaque here because the rooftop sky behind it is far brighter.")]
+        public Color subtitlePlateColor = new Color(0f, 0f, 0f, 0.62f);
         public Color subtitleTextColor = Color.white;
         [Tooltip("Where the stage 1-3 choice column sits, now that the subtitle bar owns the bottom of the view.")]
         public Vector2 choicesColumnPosition = new Vector2(0f, 60f);
@@ -105,10 +110,22 @@ namespace Env3.Anxiety
         [Tooltip("Random wobble added to each arc position so the spread does not look mechanical.")]
         public float arcJitterDegrees = 3.5f;
 
-        [Header("Panic thought colors")]
-        public Color panicThoughtDarkGrey = new Color(0.15f, 0.15f, 0.18f, 0.65f);
-        public Color panicThoughtMurkyRed = new Color(0.25f, 0.08f, 0.08f, 0.65f);
-        public Color panicThoughtDarkCharcoal = new Color(0.1f, 0.1f, 0.12f, 0.70f);
+        [Header("Panic thought intensity")]
+        [Tooltip("Plate colour ramp for the flood: the first quiet thoughts, then rising, then severe, then the loudest.")]
+        public Color panicPlateCalm = new Color(0.09f, 0.10f, 0.15f, 0.62f);
+        public Color panicPlateRising = new Color(0.30f, 0.12f, 0.10f, 0.74f);
+        public Color panicPlateSevere = new Color(0.56f, 0.08f, 0.09f, 0.85f);
+        public Color panicPlatePeak = new Color(0.84f, 0.11f, 0.10f, 0.93f);
+        [Tooltip("Text colour ramp across the same range. Every stop stays light, so a hot plate never eats the words.")]
+        public Color panicTextCalm = new Color(0.80f, 0.82f, 0.88f, 1f);
+        public Color panicTextSevere = new Color(1f, 0.95f, 0.93f, 1f);
+        public Color panicTextPeak = new Color(1f, 0.98f, 0.82f, 1f);
+        [Tooltip("Smallest and largest a flood thought is drawn, as a multiple of normal size.")]
+        public Vector2 panicSizeRange = new Vector2(0.55f, 1.8f);
+        [Tooltip("How far a thought's own wording moves it within that range. 0 draws them all the same size.")]
+        [Range(0f, 1f)] public float panicEmphasisWeight = 0.85f;
+        [Tooltip("Random colour variation between thoughts, so the flood does not look uniform.")]
+        [Range(0f, 0.5f)] public float panicColorVariance = 0.14f;
 
         [Header("Breakdown")]
         public float collapseDuration = 1.2f;
@@ -260,11 +277,10 @@ namespace Env3.Anxiety
                 subtitlePlate = subtitleBar.GetComponent<Image>();
                 if (subtitlePlate == null) subtitlePlate = subtitleBar.gameObject.AddComponent<Image>();
             }
-            if (subtitlePlate.sprite == null)
-            {
-                subtitlePlate.sprite = Env3UiFactory.RoundedRect;
-                subtitlePlate.type = Image.Type.Sliced;
-            }
+            // A flat sharp-cornered rectangle rather than the rounded pill, so this bar reads as
+            // the same piece of UI as the subtitles in the project's other scenes.
+            subtitlePlate.sprite = null;
+            subtitlePlate.type = Image.Type.Simple;
             subtitlePlate.color = subtitlePlateColor;
             subtitlePlate.raycastTarget = false;
 
@@ -284,6 +300,12 @@ namespace Env3.Anxiety
             npcLineText.color = subtitleTextColor;
             npcLineText.alignment = TextAlignmentOptions.Center;
             npcLineText.raycastTarget = false;
+
+            // Without this the line renders black on a dark plate, whatever subtitleTextColor says.
+            // Flat edge to match the other scenes, but the drop shadow stays: their subtitles sit
+            // against a dim bedroom wall, this one against a bright sunset.
+            if (dialogueFont != null) Env3UiFactory.ApplySharedFont(npcLineText, dialogueFont, 0f, 0.5f);
+            else Env3UiFactory.MakeLegible(npcLineText, 0f, 0.5f);
         }
 
         /// <summary>
@@ -474,6 +496,7 @@ namespace Env3.Anxiety
             for (int i = 0; i < count; i++)
             {
                 var button = SpawnChoice(stage.choices[i], choicesColumn, i);
+                StyleCalmChoice(button);
                 button.PlayIntro();
                 PlayTick(0.7f);
                 if (stage.choiceRevealInterval > 0f) yield return new WaitForSeconds(stage.choiceRevealInterval);
@@ -640,9 +663,35 @@ namespace Env3.Anxiety
             return button;
         }
 
+        /// <summary>
+        /// Puts a stage 1-3 answer into the same flat white-on-black styling as the subtitle bar,
+        /// so the calm half of the conversation matches the subtitles used elsewhere in the project.
+        /// The panic flood deliberately does not come through here: it keeps its own font and its
+        /// rounded plate, because that stretch is meant to stop looking like tidy UI.
+        /// </summary>
+        void StyleCalmChoice(ChoiceButton button)
+        {
+            if (button == null) return;
+
+            if (button.background != null)
+            {
+                button.background.sprite = null;
+                button.background.type = Image.Type.Simple;
+            }
+
+            if (button.label != null && dialogueFont != null)
+                Env3UiFactory.ApplySharedFont(button.label, dialogueFont, 0f, 0.5f);
+        }
+
         void SpawnPanicChoice(string text, int index)
         {
             var button = SpawnChoice(text, panicField, index);
+
+            // Two dials drive how a thought is drawn, and both push the same way: bigger and
+            // hotter. How loud the thought itself is, and how deep into the flood we are.
+            float emphasis = ThoughtEmphasis(text);
+            float progress = maxPanicChoices > 0 ? Mathf.Clamp01(index / (float)maxPanicChoices) : 0f;
+            float intensity = Mathf.Clamp01(Mathf.Max(_anxiety, 0.3f) * 0.55f + progress * 0.45f);
 
             var rect = button.Rect;
             float width = 300f;
@@ -653,22 +702,80 @@ namespace Env3.Anxiety
             }
             rect.sizeDelta = new Vector2(width, 62f);
 
-            // Apply dynamic panic colors based on anxiety level
-            float anxietyLerp = Mathf.Clamp01(_anxiety);
-            Color panicColor;
-            if (anxietyLerp < 0.33f)
-                panicColor = Color.Lerp(panicThoughtDarkGrey, panicThoughtMurkyRed, anxietyLerp * 3f);
-            else if (anxietyLerp < 0.67f)
-                panicColor = Color.Lerp(panicThoughtMurkyRed, panicThoughtDarkCharcoal, (anxietyLerp - 0.33f) * 1.5f);
-            else
-                panicColor = Color.Lerp(panicThoughtDarkCharcoal, new Color(0.08f, 0.04f, 0.06f, 0.75f), (anxietyLerp - 0.67f) * 3f);
+            // Loud thoughts start large; every thought grows as the flood deepens.
+            float sized = Mathf.Lerp(1f, Mathf.Lerp(panicSizeRange.x, panicSizeRange.y, emphasis), panicEmphasisWeight);
+            button.SetSize(Mathf.Clamp(sized * Mathf.Lerp(0.86f, 1.3f, intensity), panicSizeRange.x, panicSizeRange.y));
 
-            button.SetPanicColor(panicColor);
+            button.SetPanicColor(PanicPlateColor(intensity, emphasis), PanicTextColor(intensity, emphasis));
 
             PlaceOnArc(rect, index);
 
-            button.SetRestAngle(UnityEngine.Random.Range(-7f, 7f));
+            // The louder ones sit at a sharper angle, so the wall of text tilts as it thickens.
+            button.SetRestAngle(UnityEngine.Random.Range(-11f, 11f) * Mathf.Lerp(0.45f, 1f, emphasis));
             button.PlayIntro(0.12f);
+        }
+
+        /// <summary>
+        /// How loudly a thought reads. A shouted line or a long spiralling one sits at the top of
+        /// the range; a short mutter or a trail of dots sits at the bottom. Partly hashed off the
+        /// text itself, so the same thought is always drawn at the same weight however often it
+        /// resurfaces, but two equally loud thoughts still differ.
+        /// </summary>
+        static float ThoughtEmphasis(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return 0f;
+
+            int letters = 0;
+            int upper = 0;
+            for (int i = 0; i < text.Length; i++)
+            {
+                if (!char.IsLetter(text[i])) continue;
+                letters++;
+                if (char.IsUpper(text[i])) upper++;
+            }
+
+            float shout = letters >= 2 && upper == letters ? 1f : 0f;
+            float wordy = Mathf.InverseLerp(3f, 20f, text.Length);
+            float wordless = letters == 0 ? 1f : 0f;
+
+            return Mathf.Clamp01(0.28f + shout * 0.55f + wordy * 0.3f + StableHash01(text) * 0.22f - wordless * 0.45f);
+        }
+
+        /// <summary>Deterministic 0-1 hash. Not string.GetHashCode, which is free to vary between runs.</summary>
+        static float StableHash01(string text)
+        {
+            unchecked
+            {
+                int h = 17;
+                for (int i = 0; i < text.Length; i++) h = h * 31 + text[i];
+                return (Mathf.Abs(h) % 1000) / 1000f;
+            }
+        }
+
+        Color PanicPlateColor(float intensity, float emphasis)
+        {
+            // Loud thoughts run ahead of the flood and reach the hot end of the ramp early.
+            float t = Mathf.Clamp01(intensity * 0.68f + emphasis * 0.32f);
+
+            Color c;
+            if (t < 0.4f) c = Color.Lerp(panicPlateCalm, panicPlateRising, t / 0.4f);
+            else if (t < 0.75f) c = Color.Lerp(panicPlateRising, panicPlateSevere, (t - 0.4f) / 0.35f);
+            else c = Color.Lerp(panicPlateSevere, panicPlatePeak, (t - 0.75f) / 0.25f);
+
+            // Shifted mostly in the red so the variation reads as heat rather than as a hue wheel.
+            float v = UnityEngine.Random.Range(-panicColorVariance, panicColorVariance);
+            c.r = Mathf.Clamp01(c.r + v);
+            c.g = Mathf.Clamp01(c.g + v * 0.35f);
+            c.b = Mathf.Clamp01(c.b + v * 0.55f);
+            return c;
+        }
+
+        Color PanicTextColor(float intensity, float emphasis)
+        {
+            float t = Mathf.Clamp01(intensity * 0.6f + emphasis * 0.4f);
+            return t < 0.5f
+                ? Color.Lerp(panicTextCalm, panicTextSevere, t / 0.5f)
+                : Color.Lerp(panicTextSevere, panicTextPeak, (t - 0.5f) / 0.5f);
         }
 
         /// <summary>
