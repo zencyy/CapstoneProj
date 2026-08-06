@@ -920,8 +920,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 794898321}
+  m_fontAsset: {fileID: 11400000, guid: fdccf6ecc0a7a0a4bbb168de89a7fe86, type: 2}
+  m_sharedMaterial: {fileID: 1990421917}
   m_fontSharedMaterials:
   - {fileID: 794898321}
   m_fontMaterial: {fileID: 794898321}
@@ -947,8 +947,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4278190080
-  m_fontSize: 52
-  m_fontSizeBase: 52
+  m_fontSize: 36
+  m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -2160,7 +2160,9 @@ Material:
   m_Shader: {fileID: 4800000, guid: fe393ace9b354375a9cb14cdbbc28be4, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
+  m_ValidKeywords:
+  - OUTLINE_ON
+  - UNDERLAY_ON
   m_InvalidKeywords: []
   m_LightmapFlags: 1
   m_EnableInstancingVariants: 0
@@ -2185,11 +2187,11 @@ Material:
     - _MaskSoftnessX: 0
     - _MaskSoftnessY: 0
     - _OutlineSoftness: 0
-    - _OutlineWidth: 0
+    - _OutlineWidth: 0.14
     - _PerspectiveFilter: 0.875
     - _ScaleRatioA: 0.9
     - _ScaleRatioB: 1
-    - _ScaleRatioC: 0.73125
+    - _ScaleRatioC: 0.63586956
     - _ScaleX: 1
     - _ScaleY: 1
     - _ShaderFlags: 0
@@ -2201,19 +2203,19 @@ Material:
     - _StencilWriteMask: 255
     - _TextureHeight: 1024
     - _TextureWidth: 1024
-    - _UnderlayDilate: 0
-    - _UnderlayOffsetX: 0
-    - _UnderlayOffsetY: 0
-    - _UnderlaySoftness: 0
+    - _UnderlayDilate: 0.1
+    - _UnderlayOffsetX: 0.6
+    - _UnderlayOffsetY: -0.6
+    - _UnderlaySoftness: 0.45
     - _VertexOffsetX: 0
     - _VertexOffsetY: 0
     - _WeightBold: 0.75
     - _WeightNormal: 0
     m_Colors:
     - _ClipRect: {r: -32767, g: -32767, b: 32767, a: 32767}
-    - _FaceColor: {r: 0, g: 0, b: 0, a: 1}
-    - _OutlineColor: {r: 0, g: 0, b: 0, a: 1}
-    - _UnderlayColor: {r: 0, g: 0, b: 0, a: 0.5}
+    - _FaceColor: {r: 1, g: 1, b: 1, a: 1}
+    - _OutlineColor: {r: 0, g: 0, b: 0, a: 0.9}
+    - _UnderlayColor: {r: 0, g: 0, b: 0, a: 0.75}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
 --- !u!1 &798542332
@@ -4818,7 +4820,9 @@ Material:
   m_Shader: {fileID: 4800000, guid: fe393ace9b354375a9cb14cdbbc28be4, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
+  m_ValidKeywords:
+  - OUTLINE_ON
+  - UNDERLAY_ON
   m_InvalidKeywords: []
   m_LightmapFlags: 1
   m_EnableInstancingVariants: 0
@@ -4843,11 +4847,11 @@ Material:
     - _MaskSoftnessX: 0
     - _MaskSoftnessY: 0
     - _OutlineSoftness: 0
-    - _OutlineWidth: 0
+    - _OutlineWidth: 0.14
     - _PerspectiveFilter: 0.875
     - _ScaleRatioA: 0.9
     - _ScaleRatioB: 1
-    - _ScaleRatioC: 0.73125
+    - _ScaleRatioC: 0.63586956
     - _ScaleX: 1
     - _ScaleY: 1
     - _ShaderFlags: 0
@@ -4859,19 +4863,19 @@ Material:
     - _StencilWriteMask: 255
     - _TextureHeight: 1024
     - _TextureWidth: 1024
-    - _UnderlayDilate: 0
-    - _UnderlayOffsetX: 0
-    - _UnderlayOffsetY: 0
-    - _UnderlaySoftness: 0
+    - _UnderlayDilate: 0.1
+    - _UnderlayOffsetX: 0.6
+    - _UnderlayOffsetY: -0.6
+    - _UnderlaySoftness: 0.45
     - _VertexOffsetX: 0
     - _VertexOffsetY: 0
     - _WeightBold: 0.75
     - _WeightNormal: 0
     m_Colors:
     - _ClipRect: {r: -32767, g: -32767, b: 32767, a: 32767}
-    - _FaceColor: {r: 0, g: 0, b: 0, a: 1}
-    - _OutlineColor: {r: 0, g: 0, b: 0, a: 1}
-    - _UnderlayColor: {r: 0, g: 0, b: 0, a: 0.5}
+    - _FaceColor: {r: 1, g: 1, b: 1, a: 1}
+    - _OutlineColor: {r: 0, g: 0, b: 0, a: 0.9}
+    - _UnderlayColor: {r: 0, g: 0, b: 0, a: 0.75}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
 --- !u!1 &1843199073 stripped
@@ -5021,6 +5025,102 @@ MonoBehaviour:
   randomizeSpeed: 1
   speedRange: {x: 0.9, y: 1.1}
   forceRootMotionOff: 1
+--- !u!1 &1908296896
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1908296898}
+  - component: {fileID: 1908296897}
+  m_Layer: 0
+  m_Name: Env3_EndingSequence
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1908296897
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1908296896}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2526fc532acd30949b610c3291f6d3bf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Env3.Anxiety.EndingSequence
+  encounter: {fileID: 33123446}
+  dialogue: {fileID: 1913403638}
+  head: {fileID: 721382551}
+  startDelay: 1.6
+  fadeToBlackDuration: 3
+  holdOnBlack: 1.4
+  panelFadeDuration: 1.2
+  statsHold: 9
+  hotlineHold: 12
+  minTimeBeforeSkip: 1.5
+  contentDistance: 1.35
+  canvasScale: 0.0009
+  blackoutDistance: 0.08
+  sortingOrder: 200
+  endingLayer: 5
+  keepPointerVisible: 1
+  statsHeading: In Singapore
+  statsBody: '1 in 3 young people aged 15 to 35 report severe symptoms of depression,
+    anxiety or stress.
+
+
+    1 in 7 people here will live through a mental health
+    condition at some point in their life.
+
+
+    Most of them never tell anyone.'
+  statsFootnote: 'Institute of Mental Health, National Youth Mental Health Study
+    2024
+
+    Singapore Mental Health Study 2016'
+  hotlineHeading: If any of that felt familiar
+  hotlineBody: "SOS  Samaritans of Singapore\n1767   \xB7   24 hours\nCareText on
+    WhatsApp   9151 1767\n\nmindline.sg\n1771   \xB7   24 hours\n\nIMH Mental Health
+    Helpline\n6389 2222   \xB7   24 hours\n\nTinkle Friend  (ages 7 to 12)\n1800
+    274 4788\n\nEmergency   995"
+  endLine: You are not alone.
+  mainMenuButtonText: Main Menu
+  mainMenuSceneName: mainmenu
+  textColor: {r: 0.93, g: 0.93, b: 0.93, a: 1}
+  headingColor: {r: 1, g: 1, b: 1, a: 1}
+  footnoteColor: {r: 0.62, g: 0.62, b: 0.65, a: 1}
+  headingFontSize: 60
+  bodyFontSize: 44
+  footnoteFontSize: 26
+  menuButtonSize: {x: 620, y: 190}
+  menuButtonTextColor: {r: 0.09, g: 0.09, b: 0.09, a: 1}
+  onFadedToBlack:
+    m_PersistentCalls:
+      m_Calls: []
+  onReturningToMenu:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!4 &1908296898
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1908296896}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1913403637
 GameObject:
   m_ObjectHideFlags: 0
@@ -5154,15 +5254,16 @@ MonoBehaviour:
   postChoiceDelay: 0.75
   fadeInDuration: 0.45
   panicDuration: 10
-  maxPanicChoices: 55
+  maxPanicChoices: 72
   extraChoicesPerClick: 3
   leanInAt: 0.75
+  dialogueFont: {fileID: 11400000, guid: fdccf6ecc0a7a0a4bbb168de89a7fe86, type: 2}
   subtitleBottomMargin: 70
-  subtitleWidthRange: {x: 360, y: 1280}
-  subtitleMinHeight: 92
-  subtitlePadding: {x: 38, y: 20}
-  subtitleFontSize: 40
-  subtitlePlateColor: {r: 0.02, g: 0.02, b: 0.03, a: 0.66}
+  subtitleWidthRange: {x: 0, y: 1280}
+  subtitleMinHeight: 0
+  subtitlePadding: {x: 10, y: 4}
+  subtitleFontSize: 36
+  subtitlePlateColor: {r: 0, g: 0, b: 0, a: 0.62}
   subtitleTextColor: {r: 1, g: 1, b: 1, a: 1}
   choicesColumnPosition: {x: 0, y: 60}
   choicesColumnSize: {x: 780, y: 620}
@@ -5175,9 +5276,16 @@ MonoBehaviour:
   arcWidenOver: 14
   faceClearAngles: {x: 20, y: 16}
   arcJitterDegrees: 3.5
-  panicThoughtDarkGrey: {r: 0.15, g: 0.15, b: 0.18, a: 0.65}
-  panicThoughtMurkyRed: {r: 0.25, g: 0.08, b: 0.08, a: 0.65}
-  panicThoughtDarkCharcoal: {r: 0.1, g: 0.1, b: 0.12, a: 0.7}
+  panicPlateCalm: {r: 0.09, g: 0.1, b: 0.15, a: 0.62}
+  panicPlateRising: {r: 0.3, g: 0.12, b: 0.1, a: 0.74}
+  panicPlateSevere: {r: 0.56, g: 0.08, b: 0.09, a: 0.85}
+  panicPlatePeak: {r: 0.84, g: 0.11, b: 0.1, a: 0.93}
+  panicTextCalm: {r: 0.8, g: 0.82, b: 0.88, a: 1}
+  panicTextSevere: {r: 1, g: 0.95, b: 0.93, a: 1}
+  panicTextPeak: {r: 1, g: 0.98, b: 0.82, a: 1}
+  panicSizeRange: {x: 0.55, y: 1.8}
+  panicEmphasisWeight: 0.85
+  panicColorVariance: 0.14
   collapseDuration: 1.2
   breakdownLine: ...
   breakdownHeartbeats: 3
@@ -5434,6 +5542,116 @@ MonoBehaviour:
   randomizeSpeed: 1
   speedRange: {x: 0.9, y: 1.1}
   forceRootMotionOff: 1
+--- !u!21 &1990421917
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: AtkinsonHyperlegible-Bold SDF (Env3)
+  m_Shader: {fileID: 4800000, guid: 68e6db2ebdc24f95958faec2be5558d6, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords:
+  - UNDERLAY_ON
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BumpMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Cube:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _FaceTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 2911211795558321196, guid: fdccf6ecc0a7a0a4bbb168de89a7fe86, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _OutlineTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _Ambient: 0.5
+    - _Bevel: 0.5
+    - _BevelClamp: 0
+    - _BevelOffset: 0
+    - _BevelRoundness: 0
+    - _BevelWidth: 0
+    - _BumpFace: 0
+    - _BumpOutline: 0
+    - _ColorMask: 15
+    - _CullMode: 0
+    - _Diffuse: 0.5
+    - _FaceDilate: 0
+    - _FaceUVSpeedX: 0
+    - _FaceUVSpeedY: 0
+    - _GlowInner: 0.366
+    - _GlowOffset: 0
+    - _GlowOuter: 0.05
+    - _GlowPower: 0.478
+    - _GradientScale: 7
+    - _LightAngle: 3.1416
+    - _MaskSoftnessX: 0
+    - _MaskSoftnessY: 0
+    - _OutlineSoftness: 0
+    - _OutlineUVSpeedX: 0
+    - _OutlineUVSpeedY: 0
+    - _OutlineWidth: 0
+    - _PerspectiveFilter: 0.875
+    - _Reflectivity: 10
+    - _ScaleRatioA: 0.85714287
+    - _ScaleRatioB: 0.6964286
+    - _ScaleRatioC: 0.58035713
+    - _ScaleX: 1
+    - _ScaleY: 1
+    - _ShaderFlags: 0
+    - _Sharpness: 0
+    - _SpecularPower: 2
+    - _Stencil: 0
+    - _StencilComp: 8
+    - _StencilOp: 0
+    - _StencilReadMask: 255
+    - _StencilWriteMask: 255
+    - _TextureHeight: 512
+    - _TextureWidth: 512
+    - _UnderlayDilate: 0.1
+    - _UnderlayOffsetX: 0.6
+    - _UnderlayOffsetY: -0.6
+    - _UnderlaySoftness: 0.5
+    - _VertexOffsetX: 0
+    - _VertexOffsetY: 0
+    - _WeightBold: 0.75
+    - _WeightNormal: 0
+    m_Colors:
+    - _ClipRect: {r: -32767, g: -32767, b: 32767, a: 32767}
+    - _EnvMatrixRotation: {r: 0, g: 0, b: 0, a: 0}
+    - _FaceColor: {r: 1, g: 1, b: 1, a: 1}
+    - _GlowColor: {r: 0.3160377, g: 1, b: 0.76086605, a: 0.5}
+    - _MaskCoord: {r: 0, g: 0, b: 32767, a: 32767}
+    - _OutlineColor: {r: 0, g: 0, b: 0, a: 1}
+    - _ReflectFaceColor: {r: 0, g: 0, b: 0, a: 1}
+    - _ReflectOutlineColor: {r: 0, g: 0, b: 0, a: 1}
+    - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
+    - _UnderlayColor: {r: 0, g: 0, b: 0, a: 0.75}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!1 &2033707250 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 6174326141219191701, guid: 80e578b2d7250b542b1c305c12391f3e, type: 3}
@@ -5542,14 +5760,15 @@ MonoBehaviour:
   background: {fileID: 66851440}
   label: {fileID: 1358080304}
   group: {fileID: 2048218900}
-  idleBackground: {r: 0.07, g: 0.07, b: 0.1, a: 0.88}
-  hoverBackground: {r: 0.88, g: 0.89, b: 0.94, a: 0.96}
+  idleBackground: {r: 0, g: 0, b: 0, a: 0.62}
+  hoverBackground: {r: 0.22, g: 0.22, b: 0.25, a: 0.9}
   idleText: {r: 1, g: 1, b: 1, a: 1}
-  hoverText: {r: 0.05, g: 0.05, b: 0.07, a: 1}
+  hoverText: {r: 1, g: 1, b: 1, a: 1}
   hoverScale: 1.04
   colourSharpness: 14
   isPanicChoice: 0
   panicBackgroundColor: {r: 0.08, g: 0.08, b: 0.1, a: 0.7}
+  panicTextColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &2145756890
 GameObject:
   m_ObjectHideFlags: 0
@@ -5665,3 +5884,4 @@ SceneRoots:
   - {fileID: 169607787}
   - {fileID: 907543234}
   - {fileID: 718275912}
+  - {fileID: 1908296898}

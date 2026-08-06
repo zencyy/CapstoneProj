@@ -36,6 +36,8 @@ namespace Env3.Anxiety
         [Header("Panic state")]
         public bool isPanicChoice = false;
         public Color panicBackgroundColor = new Color(0.08f, 0.08f, 0.1f, 0.7f);
+        [Tooltip("Text colour while this is a flood thought. Kept light so a hot plate stays readable.")]
+        public Color panicTextColor = Color.white;
 
         public int Index { get; private set; }
         public string Text { get { return label != null ? label.text : string.Empty; } }
@@ -55,6 +57,7 @@ namespace Env3.Anxiety
             Rect = (RectTransform)transform;
             if (visual == null) visual = Rect;
             _seed = UnityEngine.Random.value * 100f;
+            Env3UiFactory.MakeLegible(label);
             ApplyColours(true);
         }
 
@@ -91,11 +94,21 @@ namespace Env3.Anxiety
             if (group != null) group.alpha = a;
         }
 
-        public void SetPanicColor(Color newColor)
+        public void SetPanicColor(Color background, Color text)
         {
             isPanicChoice = true;
-            panicBackgroundColor = newColor;
+            panicBackgroundColor = background;
+            panicTextColor = text;
             ApplyColours(true);
+        }
+
+        /// <summary>
+        /// Draws this thought bigger or smaller than the rest of the flood. Applied to the root
+        /// rather than <see cref="visual"/>, which the intro and hover tweens already own.
+        /// </summary>
+        public void SetSize(float multiplier)
+        {
+            transform.localScale = Vector3.one * Mathf.Max(0.05f, multiplier);
         }
 
         /// <summary>Stop accepting input, once the encounter has moved on.</summary>
@@ -160,7 +173,10 @@ namespace Env3.Anxiety
                 background.color = Color.Lerp(background.color, targetBg, k);
             }
             if (label != null)
-                label.color = Color.Lerp(label.color, on ? hoverText : idleText, k);
+            {
+                Color targetText = isPanicChoice ? panicTextColor : (on ? hoverText : idleText);
+                label.color = Color.Lerp(label.color, targetText, k);
+            }
             if (visual != null && !_locked)
             {
                 // The intro tween owns scale until it finishes, then hover takes over.
