@@ -43,20 +43,26 @@ public class AnxietyMinigameManager : MonoBehaviour
     [Tooltip("How intense the color splitting gets during the voice over (0 to 1)")]
     public float targetChromaticIntensity = 1f;
     
-    // ---> NEW: Vignette target intensity
     [Tooltip("How intense the tunnel vision vignette gets (0 to 1)")]
     public float targetVignetteIntensity = 0.8f; 
     
     public float vfxFadeDuration = 1.0f;
     
     private ChromaticAberration chromaticAberration;
-    private Vignette vignette; // ---> NEW: Vignette reference
+    private Vignette vignette; 
 
     [Header("Win Sequence Settings")] 
     public AudioClip winVoiceOverClip;
     [TextArea(2, 3)]
     public string winSubtitleText;
     public AudioSource winCrowdAudioSource;
+    
+    // ---> NEW: Transition Text Variables
+    [Tooltip("The text that fades in while the screen is black")]
+    public TMP_Text transitionText; 
+    [Tooltip("How long the transition text stays fully visible on screen")]
+    public float transitionTextDisplayTime = 3.0f; 
+    
     public float waitBeforeSceneLoad = 2.0f;
 
     [Header("Scene Transition")]
@@ -73,9 +79,9 @@ public class AnxietyMinigameManager : MonoBehaviour
     [Header("Failure UI")]
     public GameObject failureUIContainer; 
 
-    [Header("Collision UI")] // Add this near your other UI headers
+    [Header("Collision UI")] 
     public Image hitFlashScreen;
-    public Color hitFlashColor = new Color(0.8f, 0f, 0f, 0.6f); // Dark red, semi-transparent
+    public Color hitFlashColor = new Color(0.8f, 0f, 0f, 0.6f); 
     public float flashDuration = 0.5f;
 
     [HideInInspector] public bool isGameOver = false;
@@ -94,7 +100,7 @@ public class AnxietyMinigameManager : MonoBehaviour
     {
         if (hitFlashScreen != null)
         {
-            StopCoroutine(HitFlashCoroutine()); // Stop any existing flash
+            StopCoroutine(HitFlashCoroutine()); 
             StartCoroutine(HitFlashCoroutine());
         }
     }
@@ -102,24 +108,18 @@ public class AnxietyMinigameManager : MonoBehaviour
     private IEnumerator HitFlashCoroutine()
     {
         hitFlashScreen.gameObject.SetActive(true);
-        
-        // Instantly snap to the harsh color
         hitFlashScreen.color = hitFlashColor;
 
         float timer = 0f;
         while (timer < flashDuration)
         {
             timer += Time.deltaTime;
-            
-            // Smoothly fade the alpha back to 0
             Color c = hitFlashColor;
             c.a = Mathf.Lerp(hitFlashColor.a, 0f, timer / flashDuration);
             hitFlashScreen.color = c;
-            
             yield return null;
         }
 
-        // Ensure it is completely invisible at the end
         Color finalColor = hitFlashColor;
         finalColor.a = 0f;
         hitFlashScreen.color = finalColor;
@@ -141,6 +141,15 @@ public class AnxietyMinigameManager : MonoBehaviour
         if (mainHUD != null) mainHUD.SetActive(true);
         if (subtitleDisplay != null) subtitleDisplay.text = "";
         
+        // Ensure transition text starts hidden
+        if (transitionText != null)
+        {
+            Color c = transitionText.color;
+            c.a = 0f;
+            transitionText.color = c;
+            transitionText.gameObject.SetActive(false);
+        }
+
         if (phaseTwoPromptText != null)
         {
             Color c = phaseTwoPromptText.color;
@@ -165,7 +174,6 @@ public class AnxietyMinigameManager : MonoBehaviour
                 chromaticAberration.intensity.value = 0f;
             }
 
-            // ---> NEW: Get the Vignette and ensure it starts at 0
             globalVolume.profile.TryGet(out vignette);
             if (vignette != null)
             {
@@ -264,13 +272,11 @@ public class AnxietyMinigameManager : MonoBehaviour
         }
         if (subtitleDisplay != null) subtitleDisplay.text = vo.subtitleText;
 
-        // ---> AMENDED: Fade IN both effects
         StartCoroutine(AnimateVisualEffects(true, vfxFadeDuration));
 
         float waitTime = (vo.clip != null) ? vo.clip.length : 2.0f;
         yield return new WaitForSeconds(waitTime);
 
-        // ---> AMENDED: Fade OUT both effects
         StartCoroutine(AnimateVisualEffects(false, vfxFadeDuration));
 
         if (subtitleDisplay != null && subtitleDisplay.text == vo.subtitleText) subtitleDisplay.text = "";
@@ -278,7 +284,6 @@ public class AnxietyMinigameManager : MonoBehaviour
         if (playerMovementScript != null) playerMovementScript.enabled = true;
     }
 
-    // ---> AMENDED: Coroutine now handles both Chromatic Aberration and Vignette
     private IEnumerator AnimateVisualEffects(bool isFadingIn, float duration)
     {
         float timer = 0f;
@@ -382,7 +387,50 @@ public class AnxietyMinigameManager : MonoBehaviour
             fadeScreen.color = endColor;
         }
 
-        yield return new WaitForSeconds(waitBeforeSceneLoad);
+        // ---> AMENDED: Fade in the Transition Text while the screen is black
+        if (transitionText != null)
+        {
+            transitionText.gameObject.SetActive(true);
+            
+            // Fade text IN
+            float textTimer = 0f;
+            float textFadeDuration = 1.5f;
+            Color tColor = transitionText.color;
+            
+            while (textTimer < textFadeDuration)
+            {
+                textTimer += Time.deltaTime;
+                tColor.a = Mathf.Lerp(0f, 1f, textTimer / textFadeDuration);
+                transitionText.color = tColor;
+                yield return null;
+            }
+            
+            tColor.a = 1f;
+            transitionText.color = tColor;
+
+            // Wait and let the player read it while the crowd cheers
+            yield return new WaitForSeconds(transitionTextDisplayTime);
+
+            // Fade text OUT before jumping scenes
+            textTimer = 0f;
+            while (textTimer < textFadeDuration)
+            {
+                textTimer += Time.deltaTime;
+                tColor.a = Mathf.Lerp(1f, 0f, textTimer / textFadeDuration);
+                transitionText.color = tColor;
+                yield return null;
+            }
+            
+            tColor.a = 0f;
+            transitionText.color = tColor;
+            transitionText.gameObject.SetActive(false);
+        }
+        else
+        {
+            // Fallback if you forget to assign the text
+            yield return new WaitForSeconds(waitBeforeSceneLoad);
+        }
+
         SceneManager.LoadScene(concertSceneName);
     }
 
@@ -410,7 +458,7 @@ public class AnxietyMinigameManager : MonoBehaviour
         }
 
         if (failureUIContainer != null) failureUIContainer.SetActive(true);
-    } 
+    }
 
     public void RestartMinigame()
     {
@@ -442,8 +490,6 @@ public class AnxietyMinigameManager : MonoBehaviour
         onComplete?.Invoke(); 
     }
 }
-
-
 
 [System.Serializable]
 public class TimedVoiceOver
