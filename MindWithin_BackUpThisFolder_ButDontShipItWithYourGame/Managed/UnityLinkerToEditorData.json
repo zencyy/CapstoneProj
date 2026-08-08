@@ -17,9 +17,10 @@
           {
             "name": "AnimationClip",
             "scenes": [
-              "Assets/Scenes/MainGameScene.unity",
+              "Assets/Scenes/AfterParty.unity",
+              "Assets/Scenes/ConcertScene.unity",
               "Assets/Scenes/mainmenu.unity",
-              "Assets/Scenes/MinigameScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/NightBeforeScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
@@ -29,9 +30,10 @@
           {
             "name": "Animator",
             "scenes": [
-              "Assets/Scenes/MainGameScene.unity",
+              "Assets/Scenes/AfterParty.unity",
+              "Assets/Scenes/ConcertScene.unity",
               "Assets/Scenes/mainmenu.unity",
-              "Assets/Scenes/MinigameScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/NightBeforeScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
@@ -41,9 +43,10 @@
           {
             "name": "AnimatorController",
             "scenes": [
-              "Assets/Scenes/MainGameScene.unity",
+              "Assets/Scenes/AfterParty.unity",
+              "Assets/Scenes/ConcertScene.unity",
               "Assets/Scenes/mainmenu.unity",
-              "Assets/Scenes/MinigameScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/NightBeforeScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
@@ -53,6 +56,16 @@
           {
             "name": "AnimatorOverrideController",
             "scenes": [],
+            "dependencyType": 0,
+            "icon": null
+          },
+          {
+            "name": "Avatar",
+            "scenes": [
+              "Assets/Scenes/AfterParty.unity",
+              "Assets/Scenes/ConcertScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity"
+            ],
             "dependencyType": 0,
             "icon": null
           },
@@ -87,9 +100,10 @@
           {
             "name": "AudioBehaviour",
             "scenes": [
-              "Assets/Scenes/MainGameScene.unity",
+              "Assets/Scenes/AfterParty.unity",
+              "Assets/Scenes/ConcertScene.unity",
               "Assets/Scenes/mainmenu.unity",
-              "Assets/Scenes/MinigameScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/NightBeforeScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
@@ -99,7 +113,9 @@
           {
             "name": "AudioClip",
             "scenes": [
+              "Assets/Scenes/ConcertScene.unity",
               "Assets/Scenes/mainmenu.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/NightBeforeScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
@@ -109,9 +125,10 @@
           {
             "name": "AudioListener",
             "scenes": [
-              "Assets/Scenes/MainGameScene.unity",
+              "Assets/Scenes/AfterParty.unity",
+              "Assets/Scenes/ConcertScene.unity",
               "Assets/Scenes/mainmenu.unity",
-              "Assets/Scenes/MinigameScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/NightBeforeScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
@@ -127,7 +144,9 @@
           {
             "name": "AudioResource",
             "scenes": [
+              "Assets/Scenes/ConcertScene.unity",
               "Assets/Scenes/mainmenu.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/NightBeforeScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
@@ -137,7 +156,10 @@
           {
             "name": "AudioSource",
             "scenes": [
+              "Assets/Scenes/AfterParty.unity",
+              "Assets/Scenes/ConcertScene.unity",
               "Assets/Scenes/mainmenu.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/NightBeforeScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
@@ -176,9 +198,10 @@
           {
             "name": "Camera",
             "scenes": [
-              "Assets/Scenes/MainGameScene.unity",
+              "Assets/Scenes/AfterParty.unity",
+              "Assets/Scenes/ConcertScene.unity",
               "Assets/Scenes/mainmenu.unity",
-              "Assets/Scenes/MinigameScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/NightBeforeScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
@@ -200,7 +223,7 @@
           {
             "name": "Cubemap",
             "scenes": [
-              "Assets/Scenes/NightBeforeScene.unity",
+              "Assets/Scenes/AfterParty.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
             "dependencyType": 0,
@@ -221,9 +244,10 @@
           {
             "name": "EditorExtension",
             "scenes": [
-              "Assets/Scenes/MainGameScene.unity",
+              "Assets/Scenes/AfterParty.unity",
+              "Assets/Scenes/ConcertScene.unity",
               "Assets/Scenes/mainmenu.unity",
-              "Assets/Scenes/MinigameScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/NightBeforeScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
@@ -239,9 +263,10 @@
           {
             "name": "GameObject",
             "scenes": [
-              "Assets/Scenes/MainGameScene.unity",
+              "Assets/Scenes/AfterParty.unity",
+              "Assets/Scenes/ConcertScene.unity",
               "Assets/Scenes/mainmenu.unity",
-              "Assets/Scenes/MinigameScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/NightBeforeScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
@@ -268,16 +293,21 @@
           },
           {
             "name": "LODGroup",
-            "scenes": [],
+            "scenes": [
+              "Assets/Scenes/AfterParty.unity",
+              "Assets/Scenes/ConcertScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity"
+            ],
             "dependencyType": 0,
             "icon": null
           },
           {
             "name": "LevelGameManager",
             "scenes": [
-              "Assets/Scenes/MainGameScene.unity",
+              "Assets/Scenes/AfterParty.unity",
+              "Assets/Scenes/ConcertScene.unity",
               "Assets/Scenes/mainmenu.unity",
-              "Assets/Scenes/MinigameScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/NightBeforeScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
@@ -287,9 +317,10 @@
           {
             "name": "Light",
             "scenes": [
-              "Assets/Scenes/MainGameScene.unity",
+              "Assets/Scenes/AfterParty.unity",
+              "Assets/Scenes/ConcertScene.unity",
               "Assets/Scenes/mainmenu.unity",
-              "Assets/Scenes/MinigameScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/NightBeforeScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
@@ -317,9 +348,10 @@
           {
             "name": "LightmapSettings",
             "scenes": [
-              "Assets/Scenes/MainGameScene.unity",
+              "Assets/Scenes/AfterParty.unity",
+              "Assets/Scenes/ConcertScene.unity",
               "Assets/Scenes/mainmenu.unity",
-              "Assets/Scenes/MinigameScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/NightBeforeScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
@@ -329,9 +361,10 @@
           {
             "name": "LineRenderer",
             "scenes": [
-              "Assets/Scenes/MainGameScene.unity",
+              "Assets/Scenes/AfterParty.unity",
+              "Assets/Scenes/ConcertScene.unity",
               "Assets/Scenes/mainmenu.unity",
-              "Assets/Scenes/MinigameScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/NightBeforeScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
@@ -347,9 +380,10 @@
           {
             "name": "Material",
             "scenes": [
-              "Assets/Scenes/MainGameScene.unity",
+              "Assets/Scenes/AfterParty.unity",
+              "Assets/Scenes/ConcertScene.unity",
               "Assets/Scenes/mainmenu.unity",
-              "Assets/Scenes/MinigameScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/NightBeforeScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
@@ -359,9 +393,10 @@
           {
             "name": "Mesh",
             "scenes": [
-              "Assets/Scenes/MainGameScene.unity",
+              "Assets/Scenes/AfterParty.unity",
+              "Assets/Scenes/ConcertScene.unity",
               "Assets/Scenes/mainmenu.unity",
-              "Assets/Scenes/MinigameScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/NightBeforeScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
@@ -371,9 +406,10 @@
           {
             "name": "MeshFilter",
             "scenes": [
-              "Assets/Scenes/MainGameScene.unity",
+              "Assets/Scenes/AfterParty.unity",
+              "Assets/Scenes/ConcertScene.unity",
               "Assets/Scenes/mainmenu.unity",
-              "Assets/Scenes/MinigameScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/NightBeforeScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
@@ -383,9 +419,10 @@
           {
             "name": "MeshRenderer",
             "scenes": [
-              "Assets/Scenes/MainGameScene.unity",
+              "Assets/Scenes/AfterParty.unity",
+              "Assets/Scenes/ConcertScene.unity",
               "Assets/Scenes/mainmenu.unity",
-              "Assets/Scenes/MinigameScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/NightBeforeScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
@@ -395,9 +432,10 @@
           {
             "name": "MonoBehaviour",
             "scenes": [
-              "Assets/Scenes/MainGameScene.unity",
+              "Assets/Scenes/AfterParty.unity",
+              "Assets/Scenes/ConcertScene.unity",
               "Assets/Scenes/mainmenu.unity",
-              "Assets/Scenes/MinigameScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/NightBeforeScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
@@ -413,9 +451,10 @@
           {
             "name": "MonoScript",
             "scenes": [
-              "Assets/Scenes/MainGameScene.unity",
+              "Assets/Scenes/AfterParty.unity",
+              "Assets/Scenes/ConcertScene.unity",
               "Assets/Scenes/mainmenu.unity",
-              "Assets/Scenes/MinigameScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/NightBeforeScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
@@ -425,9 +464,10 @@
           {
             "name": "NamedObject",
             "scenes": [
-              "Assets/Scenes/MainGameScene.unity",
+              "Assets/Scenes/AfterParty.unity",
+              "Assets/Scenes/ConcertScene.unity",
               "Assets/Scenes/mainmenu.unity",
-              "Assets/Scenes/MinigameScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/NightBeforeScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
@@ -467,9 +507,10 @@
           {
             "name": "RectTransform",
             "scenes": [
-              "Assets/Scenes/MainGameScene.unity",
+              "Assets/Scenes/AfterParty.unity",
+              "Assets/Scenes/ConcertScene.unity",
               "Assets/Scenes/mainmenu.unity",
-              "Assets/Scenes/MinigameScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/NightBeforeScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
@@ -485,9 +526,10 @@
           {
             "name": "RenderSettings",
             "scenes": [
-              "Assets/Scenes/MainGameScene.unity",
+              "Assets/Scenes/AfterParty.unity",
+              "Assets/Scenes/ConcertScene.unity",
               "Assets/Scenes/mainmenu.unity",
-              "Assets/Scenes/MinigameScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/NightBeforeScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
@@ -521,9 +563,10 @@
           {
             "name": "Shader",
             "scenes": [
-              "Assets/Scenes/MainGameScene.unity",
+              "Assets/Scenes/AfterParty.unity",
+              "Assets/Scenes/ConcertScene.unity",
               "Assets/Scenes/mainmenu.unity",
-              "Assets/Scenes/MinigameScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/NightBeforeScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
@@ -539,9 +582,10 @@
           {
             "name": "SkinnedMeshRenderer",
             "scenes": [
-              "Assets/Scenes/MainGameScene.unity",
+              "Assets/Scenes/AfterParty.unity",
+              "Assets/Scenes/ConcertScene.unity",
               "Assets/Scenes/mainmenu.unity",
-              "Assets/Scenes/MinigameScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/NightBeforeScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
@@ -557,9 +601,10 @@
           {
             "name": "SortingGroup",
             "scenes": [
-              "Assets/Scenes/MainGameScene.unity",
+              "Assets/Scenes/AfterParty.unity",
+              "Assets/Scenes/ConcertScene.unity",
               "Assets/Scenes/mainmenu.unity",
-              "Assets/Scenes/MinigameScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/NightBeforeScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
@@ -569,9 +614,10 @@
           {
             "name": "Sprite",
             "scenes": [
-              "Assets/Scenes/MainGameScene.unity",
+              "Assets/Scenes/AfterParty.unity",
+              "Assets/Scenes/ConcertScene.unity",
               "Assets/Scenes/mainmenu.unity",
-              "Assets/Scenes/MinigameScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/NightBeforeScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
@@ -1108,8 +1154,9 @@
           {
             "name": "BoxCollider",
             "scenes": [
-              "Assets/Scenes/MainGameScene.unity",
-              "Assets/Scenes/MinigameScene.unity",
+              "Assets/Scenes/AfterParty.unity",
+              "Assets/Scenes/ConcertScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/NightBeforeScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
@@ -1128,9 +1175,10 @@
           {
             "name": "CharacterController",
             "scenes": [
-              "Assets/Scenes/MainGameScene.unity",
+              "Assets/Scenes/AfterParty.unity",
+              "Assets/Scenes/ConcertScene.unity",
               "Assets/Scenes/mainmenu.unity",
-              "Assets/Scenes/MinigameScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/NightBeforeScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
@@ -1146,9 +1194,10 @@
           {
             "name": "MeshCollider",
             "scenes": [
-              "Assets/Scenes/MainGameScene.unity",
+              "Assets/Scenes/AfterParty.unity",
+              "Assets/Scenes/ConcertScene.unity",
               "Assets/Scenes/mainmenu.unity",
-              "Assets/Scenes/MinigameScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/NightBeforeScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
@@ -1164,7 +1213,7 @@
           {
             "name": "Rigidbody",
             "scenes": [
-              "Assets/Scenes/MinigameScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
             "dependencyType": 0,
@@ -1590,9 +1639,10 @@
           {
             "name": "Font",
             "scenes": [
-              "Assets/Scenes/MainGameScene.unity",
+              "Assets/Scenes/AfterParty.unity",
+              "Assets/Scenes/ConcertScene.unity",
               "Assets/Scenes/mainmenu.unity",
-              "Assets/Scenes/MinigameScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/NightBeforeScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
@@ -1637,9 +1687,10 @@
           {
             "name": "Canvas",
             "scenes": [
-              "Assets/Scenes/MainGameScene.unity",
+              "Assets/Scenes/AfterParty.unity",
+              "Assets/Scenes/ConcertScene.unity",
               "Assets/Scenes/mainmenu.unity",
-              "Assets/Scenes/MinigameScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/NightBeforeScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
@@ -1649,9 +1700,10 @@
           {
             "name": "CanvasGroup",
             "scenes": [
-              "Assets/Scenes/MainGameScene.unity",
+              "Assets/Scenes/AfterParty.unity",
+              "Assets/Scenes/ConcertScene.unity",
               "Assets/Scenes/mainmenu.unity",
-              "Assets/Scenes/MinigameScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/NightBeforeScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
@@ -1661,9 +1713,10 @@
           {
             "name": "CanvasRenderer",
             "scenes": [
-              "Assets/Scenes/MainGameScene.unity",
+              "Assets/Scenes/AfterParty.unity",
+              "Assets/Scenes/ConcertScene.unity",
               "Assets/Scenes/mainmenu.unity",
-              "Assets/Scenes/MinigameScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/NightBeforeScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],

@@ -25,11 +25,14 @@ public class WakeUpManager : MonoBehaviour
 
         // 1. Move the XR Origin to the floor next to the bed
         xrOrigin.transform.position = floorSpawnPoint.position;
-        xrOrigin.transform.rotation = floorSpawnPoint.rotation;
+        
+        // ---> AMENDED: Force the player to stand upright! 
+        // This strips away the backward tilt (X) from the bed and matches the facing direction (Y) of your spawn point.
+        xrOrigin.transform.rotation = Quaternion.Euler(0, floorSpawnPoint.eulerAngles.y, 0);
 
         // 2. Change the tracking mode back to Floor so they have their real-world standing height back
         xrOrigin.RequestedTrackingOriginMode = XROrigin.TrackingOriginMode.Floor;
         
-        Debug.Log("Player has gotten out of bed and is now standing!");
+        Debug.Log("Player has gotten out of bed and is now standing upright!");
     }
 }
