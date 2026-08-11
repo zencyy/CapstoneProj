@@ -32,9 +32,10 @@ public class MinigameSpawner : MonoBehaviour
     public float zStaggerAmount = 3.0f; 
     
     [Tooltip("Maximum delay in seconds before an individual object spawns within a wave")]
-    public float maxTimeStagger = 0.4f; // ---> NEW: Time delay variable
+    public float maxTimeStagger = 0.4f; 
 
-    void Start()
+    // ---> AMENDED: Changed Start() to OnEnable() so the spawner reboots after being teleported
+    void OnEnable()
     {
         if (playerCamera == null && Camera.main != null) playerCamera = Camera.main.transform;
         StartCoroutine(SpawnWaves());
@@ -86,7 +87,6 @@ public class MinigameSpawner : MonoBehaviour
 
                 if (objToSpawn != null)
                 {
-                    // ---> NEW: Assign a random time delay and pass the instantiation to a separate Coroutine
                     float randomDelay = Random.Range(0f, maxTimeStagger);
                     StartCoroutine(SpawnSingleObjectDelayed(objToSpawn, laneData, progress, randomDelay));
                 }
@@ -97,25 +97,20 @@ public class MinigameSpawner : MonoBehaviour
         }
     }
 
-    // ---> NEW: Mini-Coroutine that handles the delayed spawn and math for individual objects
     private IEnumerator SpawnSingleObjectDelayed(GameObject prefab, Transform laneData, float progress, float delay)
     {
-        // 1. Wait for the staggered time
         if (delay > 0f)
         {
             yield return new WaitForSeconds(delay);
         }
 
-        // 2. Double-check the game didn't end while we were waiting
         if (AnxietyMinigameManager.Instance != null && AnxietyMinigameManager.Instance.isGameOver) yield break;
         if (prefab == null || laneData == null) yield break;
 
-        // 3. Calculate the spawn position EXACTLY at the moment of spawning so it adapts to the moving headset
         Vector3 dynamicSpawnPos = laneData.position;
         float randomOffset = Random.Range(-zStaggerAmount, zStaggerAmount);
         dynamicSpawnPos.z = playerCamera.position.z + spawnDistanceAhead + randomOffset;
 
-        // 4. Instantiate and configure speeds
         GameObject spawnedObj = Instantiate(prefab, dynamicSpawnPos, laneData.rotation);
 
         MinigameObject npcLogic = spawnedObj.GetComponent<MinigameObject>();

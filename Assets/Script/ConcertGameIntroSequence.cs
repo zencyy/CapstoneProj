@@ -1,14 +1,10 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
-using TMPro; // ---> NEW: Required for TextMeshPro
-
-// ---> NEW: This creates a clean formatting block in your Inspector for subtitles
-
+using TMPro; 
 
 public class ConcertIntroSequence : MonoBehaviour
 {
-
     [System.Serializable]
     public struct SubtitleLine
     {
@@ -21,7 +17,7 @@ public class ConcertIntroSequence : MonoBehaviour
     [Header("UI References")]
     public Image blackScreen;
     
-    [Header("Subtitles")] // ---> NEW: Subtitle variables
+    [Header("Subtitles")] 
     public TMP_Text subtitleText;
     public SubtitleLine[] dialogueLines;
 
@@ -32,7 +28,8 @@ public class ConcertIntroSequence : MonoBehaviour
     public MonoBehaviour playerMovementScript; 
 
     [Header("Game Management")]
-    public MonoBehaviour minigameSpawner;
+    // ---> AMENDED: Changed this to GameObject so we can turn the whole object on and off
+    public GameObject minigameSpawner; 
 
     [Header("Timing")]
     public float fadeDuration = 2.0f;
@@ -41,8 +38,11 @@ public class ConcertIntroSequence : MonoBehaviour
     void Start()
     {
         if (playerMovementScript != null) playerMovementScript.enabled = false;
-        if (minigameSpawner != null) minigameSpawner.enabled = false;
-        if (subtitleText != null) subtitleText.text = ""; // Ensure subtitles are empty on frame 1
+        
+        // ---> AMENDED: Hard-disable the Spawner GameObject on frame 1
+        if (minigameSpawner != null) minigameSpawner.SetActive(false); 
+        
+        if (subtitleText != null) subtitleText.text = ""; 
 
         if (blackScreen != null)
         {
@@ -91,9 +91,10 @@ public class ConcertIntroSequence : MonoBehaviour
 
         // Unlock the player and start the spawner
         if (playerMovementScript != null) playerMovementScript.enabled = true;
-        if (minigameSpawner != null) minigameSpawner.enabled = true;
         
-        // ---> NEW: Tell the master manager to start the timer and meter!
+        // ---> AMENDED: Turn the spawner GameObject back on right as the simulation officially starts
+        if (minigameSpawner != null) minigameSpawner.SetActive(true);
+        
         if (AnxietyMinigameManager.Instance != null)
         {
             AnxietyMinigameManager.Instance.StartMinigame();
@@ -102,7 +103,6 @@ public class ConcertIntroSequence : MonoBehaviour
         Debug.Log("Intro finished! Minigame Started.");
     }
 
-    // ---> NEW: Coroutine that handles the timing of the subtitle text
     private IEnumerator PlaySubtitles()
     {
         if (subtitleText == null || dialogueLines.Length == 0) yield break;
@@ -113,7 +113,6 @@ public class ConcertIntroSequence : MonoBehaviour
             yield return new WaitForSeconds(line.duration);
         }
 
-        // Clear the text once the sequence is completely finished
         subtitleText.text = ""; 
     }
 }
