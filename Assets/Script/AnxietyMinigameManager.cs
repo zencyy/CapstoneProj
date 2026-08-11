@@ -10,6 +10,8 @@ public class AnxietyMinigameManager : MonoBehaviour
 {
     public static AnxietyMinigameManager Instance;
 
+    [HideInInspector] public bool isPaused = false;
+
     [Header("Game State")]
     public bool gameHasStarted = false;
 
@@ -186,6 +188,7 @@ public class AnxietyMinigameManager : MonoBehaviour
     {
         if (isGameOver) return;
         if (!gameHasStarted) return;
+        if (isPaused) return; // ---> ADD THIS LINE
 
         timeRemaining -= Time.deltaTime;
         timerText.text = "Time: " + Mathf.Ceil(timeRemaining).ToString() + "s";

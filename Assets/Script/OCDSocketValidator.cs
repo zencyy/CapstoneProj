@@ -107,6 +107,13 @@ public class OCDSocketValidator : MonoBehaviour, IXRSelectFilter, IXRHoverFilter
     private IEnumerator TriggerDoubt(GameObject item)
     {
         currentDoubtCount++;
+
+        // ---> AMENDED: Disable grab interaction the second the doubt triggers
+        var grabInteractable = item.GetComponent<UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable>();
+        if (grabInteractable != null) 
+        {
+            grabInteractable.enabled = false;
+        }
         
         yield return new WaitForSeconds(0.5f);
 
@@ -146,6 +153,12 @@ public class OCDSocketValidator : MonoBehaviour, IXRSelectFilter, IXRHoverFilter
             {
                 rb.isKinematic = false;
                 rb.AddForce(Vector3.up * 1.5f + transform.forward * 3.5f, ForceMode.Impulse);
+            }
+
+            // ---> AMENDED: Re-enable grab interaction as the physics throws the item out
+            if (grabInteractable != null) 
+            {
+                grabInteractable.enabled = true;
             }
 
             yield return new WaitForSeconds(0.5f);
