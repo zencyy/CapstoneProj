@@ -162,8 +162,9 @@ MonoBehaviour:
   anxietyBarSlider: {fileID: 1573279371}
   phaseTwoDrainRate: 2
   mainHUD: {fileID: 2120696129}
-  timeLimit: 60
+  timeLimit: 80
   timerText: {fileID: 881464331}
+  phaseTwoStartTime: 40
   phaseTwoPromptText: {fileID: 919256472}
   promptDisplayTime: 4
   voiceOverSource: {fileID: 2756317}
@@ -429,7 +430,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: 9e02dcb27bcce3243b0ed9df9fb8ea85, type: 3}
-  m_PlayOnAwake: 1
+  m_PlayOnAwake: 0
   m_Volume: 0.227
   m_Pitch: 1
   Loop: 0
@@ -529,13 +530,13 @@ MonoBehaviour:
   blackScreen: {fileID: 2101304212}
   subtitleText: {fileID: 412898515}
   dialogueLines:
-  - text: '*Exhales* Okay I can get through the crowd, just breathe..'
-    duration: 3
-  voiceOverSource: {fileID: 0}
+  - text: Okay I can get through the crowd, just breathe..
+    duration: 5
+  voiceOverSource: {fileID: 2756317}
   playerMovementScript: {fileID: 159982225}
   minigameSpawner: {fileID: 1740231366}
-  fadeDuration: 2
-  initialDelay: 1
+  fadeDuration: 1
+  initialDelay: 0
 --- !u!82 &2756316
 AudioSource:
   m_ObjectHideFlags: 0
@@ -644,7 +645,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 0}
+  m_Resource: {fileID: 8300000, guid: 0e5ee0203a180124bbf954d6241b4027, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
@@ -1422,7 +1423,7 @@ Transform:
   m_GameObject: {fileID: 231775525}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.82, y: 0.56, z: 29.483002}
+  m_LocalPosition: {x: 2.883, y: 0.56, z: 29.483002}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2129,7 +2130,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 153982007679157697, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
       propertyPath: m_MoveSpeed
-      value: 1
+      value: 1.2
       objectReference: {fileID: 0}
     - target: {fileID: 153982007679157697, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
       propertyPath: m_EnableStrafe
@@ -2153,7 +2154,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1717954561962503726, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
       propertyPath: m_LocalScale.y
-      value: 1.21
+      value: 1.24
       objectReference: {fileID: 0}
     - target: {fileID: 1717954561962503726, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
       propertyPath: m_LocalPosition.x
@@ -3729,7 +3730,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 512.59, y: 193.59018}
+  m_AnchoredPosition: {x: 366, y: 128}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &881464331
@@ -3752,7 +3753,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Time: 60s'
+  m_text: 'Time: 80s'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fdccf6ecc0a7a0a4bbb168de89a7fe86, type: 2}
   m_sharedMaterial: {fileID: 5617984136858973993, guid: fdccf6ecc0a7a0a4bbb168de89a7fe86, type: 2}
@@ -3888,7 +3889,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 141.9}
+  m_AnchoredPosition: {x: 0, y: 34.1}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &919256472
@@ -5295,7 +5296,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6598815579406187037, guid: 18ddb545287c546e19cc77dc9fbb2189, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -6726,7 +6727,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 62, y: 74}
+  m_AnchoredPosition: {x: 62, y: 38}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1277588757
@@ -7819,7 +7820,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 371, y: 154.9}
+  m_AnchoredPosition: {x: 224.40994, y: 89.3096}
   m_SizeDelta: {x: 160, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1573279371
@@ -8420,8 +8421,8 @@ MonoBehaviour:
   initialSpawnDelay: 2
   maxSpawnDelay: 2.5
   minSpawnDelay: 0.8
-  minSpeed: 15
-  maxSpeed: 20
+  minSpeed: 10
+  maxSpeed: 14
   maxWallSpawnChance: 0.7
   zStaggerAmount: 3
   maxTimeStagger: 0.4
@@ -8474,7 +8475,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 143.3}
+  m_AnchoredPosition: {x: 0, y: 115}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1748659748
@@ -8932,7 +8933,7 @@ Transform:
   m_GameObject: {fileID: 1931760813}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.1, y: 1.61, z: 3.25}
+  m_LocalPosition: {x: 0.1, y: 1.61, z: -6.13}
   m_LocalScale: {x: 6.9605865, y: 2.5839, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

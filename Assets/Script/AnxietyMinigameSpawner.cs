@@ -34,7 +34,8 @@ public class MinigameSpawner : MonoBehaviour
     [Tooltip("Maximum delay in seconds before an individual object spawns within a wave")]
     public float maxTimeStagger = 0.4f; 
 
-    // ---> AMENDED: Changed Start() to OnEnable() so the spawner reboots after being teleported
+    // ---> AMENDED: Removed the separate timer variables. We now rely entirely on the GameManager!
+
     void OnEnable()
     {
         if (playerCamera == null && Camera.main != null) playerCamera = Camera.main.transform;
@@ -50,7 +51,9 @@ public class MinigameSpawner : MonoBehaviour
             if (AnxietyMinigameManager.Instance != null && AnxietyMinigameManager.Instance.isGameOver) yield break; 
 
             float progress = AnxietyMinigameManager.Instance != null ? AnxietyMinigameManager.Instance.GetTimeProgress() : 0f;
-            bool isPhaseTwo = AnxietyMinigameManager.Instance != null && AnxietyMinigameManager.Instance.isPhaseTwo;
+            
+            // ---> AMENDED: The spawner now asks the central Manager if it is officially Phase Two!
+            bool canSpawnPositiveThoughts = AnxietyMinigameManager.Instance != null && AnxietyMinigameManager.Instance.isPhaseTwo;
 
             float currentWallChance = Mathf.Lerp(0f, maxWallSpawnChance, progress);
             int objectsToSpawn = 1;
@@ -76,7 +79,8 @@ public class MinigameSpawner : MonoBehaviour
 
                 GameObject objToSpawn = null;
 
-                if (isPhaseTwo && positiveThoughtPrefabs.Length > 0 && Random.value > 0.6f)
+                // Spawns positive thoughts if Phase Two is active
+                if (canSpawnPositiveThoughts && positiveThoughtPrefabs.Length > 0 && Random.value > 0.6f)
                 {
                     objToSpawn = positiveThoughtPrefabs[Random.Range(0, positiveThoughtPrefabs.Length)];
                 }
