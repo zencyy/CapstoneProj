@@ -16,7 +16,6 @@ public class AnxietyMinigameManager : MonoBehaviour
     public bool gameHasStarted = false;
 
     [Header("Player Control")]
-    [Tooltip("Drag your XR Locomotion or movement script here")]
     public MonoBehaviour playerMovementScript;
 
     [Header("Anxiety Bar Settings")]
@@ -31,6 +30,10 @@ public class AnxietyMinigameManager : MonoBehaviour
     private float timeRemaining;
     public TextMeshProUGUI timerText;
 
+    [Header("Phase 2 Settings")] 
+    public float phaseTwoStartTime = 60f; 
+    private float activePlayTime = 0f; 
+
     [Header("Phase 2 UI")]
     public TMP_Text phaseTwoPromptText;
     public float promptDisplayTime = 4.0f;
@@ -42,12 +45,8 @@ public class AnxietyMinigameManager : MonoBehaviour
 
     [Header("Post Processing (VFX)")] 
     public Volume globalVolume;
-    [Tooltip("How intense the color splitting gets during the voice over (0 to 1)")]
     public float targetChromaticIntensity = 1f;
-    
-    [Tooltip("How intense the tunnel vision vignette gets (0 to 1)")]
     public float targetVignetteIntensity = 0.8f; 
-    
     public float vfxFadeDuration = 1.0f;
     
     private ChromaticAberration chromaticAberration;
@@ -59,12 +58,8 @@ public class AnxietyMinigameManager : MonoBehaviour
     public string winSubtitleText;
     public AudioSource winCrowdAudioSource;
     
-    // ---> NEW: Transition Text Variables
-    [Tooltip("The text that fades in while the screen is black")]
     public TMP_Text transitionText; 
-    [Tooltip("How long the transition text stays fully visible on screen")]
     public float transitionTextDisplayTime = 3.0f; 
-    
     public float waitBeforeSceneLoad = 2.0f;
 
     [Header("Scene Transition")]
@@ -143,7 +138,6 @@ public class AnxietyMinigameManager : MonoBehaviour
         if (mainHUD != null) mainHUD.SetActive(true);
         if (subtitleDisplay != null) subtitleDisplay.text = "";
         
-        // Ensure transition text starts hidden
         if (transitionText != null)
         {
             Color c = transitionText.color;
@@ -160,7 +154,7 @@ public class AnxietyMinigameManager : MonoBehaviour
             phaseTwoPromptText.gameObject.SetActive(false);
         }
 
-        if (minigameBGM != null) minigameBGM.Play();
+        // ---> AMENDED: Removed the BGM starting here!
 
         if (fadeScreen != null)
         {
@@ -188,12 +182,14 @@ public class AnxietyMinigameManager : MonoBehaviour
     {
         if (isGameOver) return;
         if (!gameHasStarted) return;
-        if (isPaused) return; // ---> ADD THIS LINE
+        if (isPaused) return; 
 
         timeRemaining -= Time.deltaTime;
+        activePlayTime += Time.deltaTime; 
+
         timerText.text = "Time: " + Mathf.Ceil(timeRemaining).ToString() + "s";
 
-        if (timeRemaining <= 30f)
+        if (activePlayTime >= phaseTwoStartTime)
         {
             if (!isPhaseTwo)
             {
@@ -390,12 +386,10 @@ public class AnxietyMinigameManager : MonoBehaviour
             fadeScreen.color = endColor;
         }
 
-        // ---> AMENDED: Fade in the Transition Text while the screen is black
         if (transitionText != null)
         {
             transitionText.gameObject.SetActive(true);
             
-            // Fade text IN
             float textTimer = 0f;
             float textFadeDuration = 1.5f;
             Color tColor = transitionText.color;
@@ -411,10 +405,8 @@ public class AnxietyMinigameManager : MonoBehaviour
             tColor.a = 1f;
             transitionText.color = tColor;
 
-            // Wait and let the player read it while the crowd cheers
             yield return new WaitForSeconds(transitionTextDisplayTime);
 
-            // Fade text OUT before jumping scenes
             textTimer = 0f;
             while (textTimer < textFadeDuration)
             {
@@ -430,7 +422,6 @@ public class AnxietyMinigameManager : MonoBehaviour
         }
         else
         {
-            // Fallback if you forget to assign the text
             yield return new WaitForSeconds(waitBeforeSceneLoad);
         }
 
@@ -472,6 +463,9 @@ public class AnxietyMinigameManager : MonoBehaviour
     {
         gameHasStarted = true;
         Debug.Log("Intro finished: Timer and Meter have now started!");
+        
+        // ---> AMENDED: BGM will now start playing at exactly this moment!
+        if (minigameBGM != null) minigameBGM.Play(); 
     }
 
     private IEnumerator FadeRoutine(float startAlpha, float endAlpha, System.Action onComplete)
@@ -502,7 +496,6 @@ public class TimedVoiceOver
     public AudioClip clip;
     [HideInInspector] public bool hasPlayed = false;
 }
-
 /*private void LoseGame()
     {
         isGameOver = true;
