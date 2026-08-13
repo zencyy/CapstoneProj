@@ -5,10 +5,10 @@ using TMPro;
 public class AdvancedBookPuzzle : MonoBehaviour
 {
     [Header("Puzzle Configuration")]
-    [Tooltip("Drag the 5 shelf sockets here in order (e.g., left to right)")]
+    [Tooltip("Drag the 3 shelf sockets here in order (e.g., left to right)")]
     public UnityEngine.XR.Interaction.Toolkit.Interactors.XRSocketInteractor[] bookSockets;
     
-    [Tooltip("Drag the 5 books here IN THE EXACT SAME ORDER as the sockets above")]
+    [Tooltip("Drag the 3 books here IN THE EXACT SAME ORDER as the sockets above")]
     public GameObject[] expectedBooks; 
 
     [Header("Feedback UI")]
@@ -42,12 +42,10 @@ public class AdvancedBookPuzzle : MonoBehaviour
 
         if (!isChecking)
         {
-            // Only evaluate on the exact moment the 5th book is placed
             if (filledSockets == bookSockets.Length && lastFilledCount < bookSockets.Length)
             {
                 StartCoroutine(EvaluatePuzzle());
             }
-            // Hide error UI if they realize they are wrong and pull a book out
             else if (filledSockets < bookSockets.Length && feedbackCanvas != null && feedbackCanvas.activeSelf)
             {
                 feedbackCanvas.SetActive(false);
@@ -61,27 +59,33 @@ public class AdvancedBookPuzzle : MonoBehaviour
     {
         isChecking = true;
         
-        // Wait half a second to let the final book snap into place visually
-        yield return new WaitForSeconds(0.5f); 
+        // 1. Wait a full second BEFORE touching the physics. 
+        // This gives the OCDSocketValidator time to trigger its doubt mechanic and reject the book.
+        yield return new WaitForSeconds(1.0f); 
 
+        bool allFilled = true;
         bool isCorrect = true;
 
         for (int i = 0; i < bookSockets.Length; i++)
         {
-            // Safety check in case a book falls out during the 0.5s wait
             if (!bookSockets[i].hasSelection)
             {
-                isCorrect = false;
+                allFilled = false;
                 break;
             }
 
             GameObject bookInSocket = bookSockets[i].firstInteractableSelected.transform.gameObject;
-            
             if (bookInSocket != expectedBooks[i])
             {
                 isCorrect = false;
-                break; 
             }
+        }
+
+        // If a doubt ejected a book during our 1-second wait, just cancel the check.
+        if (!allFilled)
+        {
+            isChecking = false;
+            yield break;
         }
 
         if (feedbackCanvas != null) feedbackCanvas.SetActive(true);
@@ -92,31 +96,36 @@ public class AdvancedBookPuzzle : MonoBehaviour
             isSolved = true;
             if (feedbackText != null) feedbackText.text = successMessage;
             if (successAudio != null) successAudio.Play();
+            
+            // ---> AMENDED: Only call this ONCE for the entire 3-book puzzle!
             if (OCDGameManager.Instance != null)
             {
-                for (int i = 0; i < bookSockets.Length; i++)
-                {
-                    OCDGameManager.Instance.ItemRestored();
-                }
+                OCDGameManager.Instance.ItemRestored();
             }
             
-            // Permanently lock the books in place
             foreach (var socket in bookSockets) 
             { 
                 if (socket.hasSelection)
                 {
                     GameObject book = socket.firstInteractableSelected.transform.gameObject;
 
-                    // 1. Destroy XR Grab so the system immediately forgets about the book
+                    Transform targetAttach = socket.attachTransform != null ? socket.attachTransform : socket.transform;
+                    book.transform.position = targetAttach.position;
+                    book.transform.rotation = targetAttach.rotation;
+
+                    // ---> AMENDED: Lock physics entirely BEFORE destroying the grab script so it doesn't fall!
+                    Rigidbody bookRb = book.GetComponent<Rigidbody>();
+                    if (bookRb != null) 
+                    {
+                        bookRb.isKinematic = true;
+                        bookRb.useGravity = false;
+                        bookRb.constraints = RigidbodyConstraints.FreezeAll;
+                    }
+
                     var bookGrab = book.GetComponent<UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable>();
                     if (bookGrab != null) Destroy(bookGrab);
-
-                    // 2. Destroy Rigidbody so it completely freezes in place! No physics needed.
-                    Rigidbody bookRb = book.GetComponent<Rigidbody>();
-                    if (bookRb != null) Destroy(bookRb);
                 }
 
-                // Safely turn off the socket
                 socket.enabled = false; 
             }
             

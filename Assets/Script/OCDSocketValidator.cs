@@ -108,7 +108,18 @@ public class OCDSocketValidator : MonoBehaviour, IXRSelectFilter, IXRHoverFilter
     {
         currentDoubtCount++;
 
-        // ---> AMENDED: Disable grab interaction the second the doubt triggers
+        Transform targetAttach = socket.attachTransform != null ? socket.attachTransform : socket.transform;
+        item.transform.position = targetAttach.position;
+        item.transform.rotation = targetAttach.rotation;
+
+        // ---> AMENDED: Turn off gravity so the book floats flawlessly in the socket during the doubt!
+        Rigidbody rb = item.GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.isKinematic = true;
+            rb.useGravity = false;
+        }
+
         var grabInteractable = item.GetComponent<UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable>();
         if (grabInteractable != null) 
         {
@@ -147,15 +158,15 @@ public class OCDSocketValidator : MonoBehaviour, IXRSelectFilter, IXRHoverFilter
         if (socket != null)
         {
             socket.enabled = false;
-            Rigidbody rb = item.GetComponent<Rigidbody>();
             
             if (rb != null) 
             {
+                // ---> AMENDED: Turn gravity back on right as it shoots out of the socket!
                 rb.isKinematic = false;
+                rb.useGravity = true;
                 rb.AddForce(Vector3.up * 1.5f + transform.forward * 3.5f, ForceMode.Impulse);
             }
 
-            // ---> AMENDED: Re-enable grab interaction as the physics throws the item out
             if (grabInteractable != null) 
             {
                 grabInteractable.enabled = true;
@@ -170,9 +181,12 @@ public class OCDSocketValidator : MonoBehaviour, IXRSelectFilter, IXRHoverFilter
 
     private IEnumerator LockItemPermanently(GameObject item)
     {
+        Transform targetAttach = socket.attachTransform != null ? socket.attachTransform : socket.transform;
+        item.transform.position = targetAttach.position;
+        item.transform.rotation = targetAttach.rotation;
+
         yield return new WaitForSeconds(0.1f); 
 
-        // 1. Completely lock down the physics engine for this item
         Rigidbody rb = item.GetComponent<Rigidbody>();
         if (rb != null)
         {
@@ -181,14 +195,12 @@ public class OCDSocketValidator : MonoBehaviour, IXRSelectFilter, IXRHoverFilter
             rb.constraints = RigidbodyConstraints.FreezeAll;
         }
 
-        // 2. Prevent the player from grabbing it again
         var grabInteractable = item.GetComponent<UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable>();
         if (grabInteractable != null) 
         {
             grabInteractable.enabled = false;
         }
 
-        // We specifically leave the socket component ENABLED here so it doesn't force a drop!
         Debug.Log(item.name + " permanently locked in the socket.");
     }
 }

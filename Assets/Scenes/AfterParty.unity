@@ -5267,15 +5267,21 @@ MonoBehaviour:
   endingLayer: 5
   keepPointerVisible: 1
   statsHeading: In Singapore
-  statsBody: '1 in 3 young people aged 15 to 35 report severe symptoms of depression,
-    anxiety or stress.
+  statsBody: 'The chaos you just experienced isn''t just a simulation.
 
 
-    1 in 7 people here will live through a mental health
-    condition at some point in their life.
+    1 in
+    3 youths in Singapore experience severe symptoms of depression, anxiety, or stress.
 
 
-    Most of them never tell anyone.'
+    1
+    in 7 people will live through a mental health condition in their lifetime.
+
+
+    The
+    hardest step is reaching out. You do not have to carry it alone.
+
+'
   statsFootnote: 'Institute of Mental Health, National Youth Mental Health Study
     2024
 

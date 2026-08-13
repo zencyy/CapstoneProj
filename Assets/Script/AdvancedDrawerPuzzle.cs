@@ -11,8 +11,11 @@ public class AdvancedDrawerPuzzle : MonoBehaviour
 
     [Header("Feedback UI")]
     public GameObject feedbackCanvas; 
-    public TMP_Text feedbackText;     
+    public TMP_Text feedbackText;    
+    
+    // ---> AMENDED: Split the messages into two steps
     public string successMessage = "Perfect.";
+    public string pushDrawerMessage = "Push the drawer in.";
     public string errorMessage = "Order is incorrect.";
 
     [Header("Psychological Mechanics")]
@@ -130,16 +133,10 @@ public class AdvancedDrawerPuzzle : MonoBehaviour
             {
                 // SUCCESS 2: TRUE SUCCESS, UNLOCK THE DRAWER
                 isSolved = true;
+                
+                // Show the initial success message
                 if (feedbackText != null) feedbackText.text = successMessage;
                 if (successAudio != null) successAudio.Play();
-                
-                if (OCDGameManager.Instance != null)
-                {
-                    for (int i = 0; i < drawerSockets.Length; i++)
-                    {
-                        OCDGameManager.Instance.ItemRestored();
-                    }
-                }
                 
                 foreach (var socket in drawerSockets) 
                 { 
@@ -171,6 +168,13 @@ public class AdvancedDrawerPuzzle : MonoBehaviour
 
                 // ALLOW THE PLAYER TO GRAB THE DRAWER
                 if (drawerGrabScript != null) drawerGrabScript.enabled = true; 
+
+                // ---> AMENDED: Wait 1.5 seconds, then update the text to tell them to push it in
+                yield return new WaitForSeconds(1.5f);
+                if (feedbackText != null && feedbackCanvas != null && feedbackCanvas.activeSelf)
+                {
+                    feedbackText.text = pushDrawerMessage;
+                }
 
                 Debug.Log("Puzzle Solved! Drawer is now unlocked and can slide.");
                 isChecking = false;
