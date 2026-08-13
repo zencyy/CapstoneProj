@@ -21,6 +21,13 @@ public class ConcertIntroSequence : MonoBehaviour
     public TMP_Text subtitleText;
     public SubtitleLine[] dialogueLines;
 
+    [Header("Objective UI")] // ---> NEW: Variables for the post-intro instruction
+    public TMP_Text objectiveText;
+    [TextArea(1, 2)]
+    public string objectiveString = "Keep moving forward. Reach the doors.";
+    public float objectiveFadeDuration = 1.5f;
+    public float objectiveStayDuration = 3.0f;
+
     [Header("Audio")]
     public AudioSource voiceOverSource;
 
@@ -28,7 +35,6 @@ public class ConcertIntroSequence : MonoBehaviour
     public MonoBehaviour playerMovementScript; 
 
     [Header("Game Management")]
-    // ---> AMENDED: Changed this to GameObject so we can turn the whole object on and off
     public GameObject minigameSpawner; 
 
     [Header("Timing")]
@@ -39,10 +45,18 @@ public class ConcertIntroSequence : MonoBehaviour
     {
         if (playerMovementScript != null) playerMovementScript.enabled = false;
         
-        // ---> AMENDED: Hard-disable the Spawner GameObject on frame 1
         if (minigameSpawner != null) minigameSpawner.SetActive(false); 
         
         if (subtitleText != null) subtitleText.text = ""; 
+
+        // ---> NEW: Ensure objective text starts completely transparent
+        if (objectiveText != null) 
+        {
+            Color oc = objectiveText.color;
+            oc.a = 0f;
+            objectiveText.color = oc;
+            objectiveText.text = objectiveString; 
+        }
 
         if (blackScreen != null)
         {
@@ -92,7 +106,6 @@ public class ConcertIntroSequence : MonoBehaviour
         // Unlock the player and start the spawner
         if (playerMovementScript != null) playerMovementScript.enabled = true;
         
-        // ---> AMENDED: Turn the spawner GameObject back on right as the simulation officially starts
         if (minigameSpawner != null) minigameSpawner.SetActive(true);
         
         if (AnxietyMinigameManager.Instance != null)
@@ -101,6 +114,12 @@ public class ConcertIntroSequence : MonoBehaviour
         }
         
         Debug.Log("Intro finished! Minigame Started.");
+
+        // ---> NEW: Trigger the objective text to fade in right as the player gets control
+        if (objectiveText != null)
+        {
+            StartCoroutine(FadeObjectiveUI());
+        }
     }
 
     private IEnumerator PlaySubtitles()
@@ -114,5 +133,40 @@ public class ConcertIntroSequence : MonoBehaviour
         }
 
         subtitleText.text = ""; 
+    }
+
+    // ---> NEW: Coroutine to handle the smooth fade in, hold, and fade out of the objective
+    private IEnumerator FadeObjectiveUI()
+    {
+        float timer = 0f;
+        Color c = objectiveText.color;
+
+        // Fade IN
+        while (timer < objectiveFadeDuration)
+        {
+            timer += Time.deltaTime;
+            c.a = Mathf.Lerp(0f, 1f, timer / objectiveFadeDuration);
+            objectiveText.color = c;
+            yield return null;
+        }
+
+        c.a = 1f;
+        objectiveText.color = c;
+
+        // Wait so the player can read it before moving
+        yield return new WaitForSeconds(objectiveStayDuration);
+
+        // Fade OUT
+        timer = 0f;
+        while (timer < objectiveFadeDuration)
+        {
+            timer += Time.deltaTime;
+            c.a = Mathf.Lerp(1f, 0f, timer / objectiveFadeDuration);
+            objectiveText.color = c;
+            yield return null;
+        }
+
+        c.a = 0f;
+        objectiveText.color = c;
     }
 }
