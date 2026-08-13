@@ -224,6 +224,9 @@
             "name": "Cubemap",
             "scenes": [
               "Assets/Scenes/AfterParty.unity",
+              "Assets/Scenes/ConcertScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
+              "Assets/Scenes/NightBeforeScene.unity",
               "Assets/Scenes/WakeUpRoomScene.unity"
             ],
             "dependencyType": 0,
@@ -335,7 +338,12 @@
           },
           {
             "name": "LightProbes",
-            "scenes": [],
+            "scenes": [
+              "Assets/Scenes/ConcertScene.unity",
+              "Assets/Scenes/MinigameConcertScene.unity",
+              "Assets/Scenes/NightBeforeScene.unity",
+              "Assets/Scenes/WakeUpRoomScene.unity"
+            ],
             "dependencyType": 0,
             "icon": null
           },

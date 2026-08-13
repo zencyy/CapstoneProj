@@ -2498,7 +2498,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7746a376987876f4984acdad5b51245c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::OCDGameManager
-  totalItemsToClean: 2
+  totalItemsToClean: 10
   progressText: {fileID: 2015511278}
   subtitleText: {fileID: 1190097364}
   finalVoiceOver: {fileID: 132357319}
@@ -21690,7 +21690,7 @@ MonoBehaviour:
   successMessage: Perfect.
   pushDrawerMessage: Push the drawer in.
   errorMessage: Order is incorrect.
-  requiredSuccesses: 1
+  requiredSuccesses: 2
   puzzleDoubtMessage: Wait this is not right.. doing it again
   puzzleDoubtAudio: {fileID: 996296038}
   drawerGrabScript: {fileID: 996296040}
@@ -23292,7 +23292,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6598815579406187037, guid: 18ddb545287c546e19cc77dc9fbb2189, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6598815579406187037, guid: 18ddb545287c546e19cc77dc9fbb2189, type: 3}
       propertyPath: m_TagString
