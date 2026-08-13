@@ -8,7 +8,7 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: mikuposter1V
-    second: {fileID: 2100000, guid: 51c07f26cbbb4ca409c6852fa9bbe230, type: 2}
+    second: {fileID: 2100000, guid: dbbf0f67f49979f41afb3c08635e2516, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
@@ -18,7 +18,7 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: mikuposterH1
-    second: {fileID: 2100000, guid: dbbf0f67f49979f41afb3c08635e2516, type: 2}
+    second: {fileID: 2100000, guid: 51c07f26cbbb4ca409c6852fa9bbe230, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule

@@ -65,6 +65,19 @@ public class DrawerSlider : MonoBehaviour
 
         if (slamSound != null) slamSound.Play();
 
-        Debug.Log("Drawer snapped flush into position and locked forever!");
+        // ---> AMENDED: Only update the progress meter exactly once when the drawer locks securely!
+        if (OCDGameManager.Instance != null)
+        {
+            OCDGameManager.Instance.ItemRestored();
+        }
+
+        // ---> AMENDED: Automatically hide the puzzle UI feedback once the drawer is pushed in.
+        AdvancedDrawerPuzzle puzzleScript = GetComponent<AdvancedDrawerPuzzle>();
+        if (puzzleScript != null && puzzleScript.feedbackCanvas != null)
+        {
+            puzzleScript.feedbackCanvas.SetActive(false);
+        }
+
+        Debug.Log("Drawer snapped flush into position and locked forever! Progress updated.");
     }
 }

@@ -3,12 +3,8 @@ using UnityEngine.UI;
 using TMPro;
 using System.Collections;
 
-// 1. NEW: We create a custom data container to hold both the text and its timing
-
-
 public class OCDPanicTrigger : MonoBehaviour
 {
-
     [System.Serializable]
     public struct SubtitleLine
     {
@@ -31,14 +27,30 @@ public class OCDPanicTrigger : MonoBehaviour
 
     [Header("Dialogue & Pacing")]
     [Tooltip("Add your split dialogue lines here in order.")]
-    public SubtitleLine[] dialogueLines; // <--- This replaces the single string
+    public SubtitleLine[] dialogueLines; 
     
     public float initialDelay = 2.0f;
     public float maxDarkness = 0.75f;
 
+    [Header("Objective UI")] // ---> NEW: Variables for the post-panic instruction
+    public TMP_Text objectiveText;
+    [TextArea(1, 2)]
+    public string objectiveString = "Everything is out of place... I need to put it back.";
+    public float objectiveFadeDuration = 1.5f;
+    public float objectiveStayDuration = 3.0f;
+
     void Start()
     {
         if (subtitleText != null) subtitleText.text = "";
+        
+        // Ensure objective text starts completely transparent
+        if (objectiveText != null) 
+        {
+            Color oc = objectiveText.color;
+            oc.a = 0;
+            objectiveText.color = oc;
+            objectiveText.text = objectiveString; 
+        }
         
         if (darkScreenImage != null)
         {
@@ -134,20 +146,57 @@ public class OCDPanicTrigger : MonoBehaviour
 
         // 8. Turn off heartbeat completely
         if (heartbeatAudio != null) heartbeatAudio.Stop();
+
+        // ---> NEW: 9. Trigger the final objective UI sequence
+        if (objectiveText != null)
+        {
+            StartCoroutine(FadeObjectiveUI());
+        }
     }
 
-    // NEW COROUTINE: This handles the subtitles independently of the screen fading
     private IEnumerator PlaySubtitles()
     {
         foreach (SubtitleLine line in dialogueLines)
         {
             if (subtitleText != null) subtitleText.text = line.text;
-            
-            // Wait for this specific line's duration before moving to the next
             yield return new WaitForSeconds(line.duration);
         }
         
-        // Clear the text just in case the audio is slightly longer than the subtitle durations
         if (subtitleText != null) subtitleText.text = "";
+    }
+
+    // ---> NEW COROUTINE: Handles the smooth fade in, hold, and fade out of the objective
+    private IEnumerator FadeObjectiveUI()
+    {
+        float timer = 0f;
+        Color c = objectiveText.color;
+
+        // Fade IN
+        while (timer < objectiveFadeDuration)
+        {
+            timer += Time.deltaTime;
+            c.a = Mathf.Lerp(0f, 1f, timer / objectiveFadeDuration);
+            objectiveText.color = c;
+            yield return null;
+        }
+
+        c.a = 1f;
+        objectiveText.color = c;
+
+        // Wait so the player can read it
+        yield return new WaitForSeconds(objectiveStayDuration);
+
+        // Fade OUT
+        timer = 0f;
+        while (timer < objectiveFadeDuration)
+        {
+            timer += Time.deltaTime;
+            c.a = Mathf.Lerp(1f, 0f, timer / objectiveFadeDuration);
+            objectiveText.color = c;
+            yield return null;
+        }
+
+        c.a = 0f;
+        objectiveText.color = c;
     }
 }
