@@ -2,6 +2,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
+using UnityEngine.Rendering; // ---> NEW: Required for Volumes
+using UnityEngine.Rendering.Universal; // ---> NEW: Required for URP Effects
 
 public class OCDPanicTrigger : MonoBehaviour
 {
@@ -32,7 +34,17 @@ public class OCDPanicTrigger : MonoBehaviour
     public float initialDelay = 2.0f;
     public float maxDarkness = 0.75f;
 
-    [Header("Objective UI")] // ---> NEW: Variables for the post-panic instruction
+    [Header("Post Processing Effects")] // ---> NEW: Variables for the panic visual effects
+    public Volume globalVolume;
+    [Tooltip("How much the colors split/blur (0 to 1)")]
+    public float maxChromaticAberration = 1f; 
+    [Tooltip("How much the screen warps inwards. Negative numbers pinch the screen.")]
+    public float maxLensDistortion = -0.5f; 
+
+    private ChromaticAberration chromaticAberration;
+    private LensDistortion lensDistortion;
+
+    [Header("Objective UI")] 
     public TMP_Text objectiveText;
     [TextArea(1, 2)]
     public string objectiveString = "Everything is out of place... I need to put it back.";
@@ -43,7 +55,6 @@ public class OCDPanicTrigger : MonoBehaviour
     {
         if (subtitleText != null) subtitleText.text = "";
         
-        // Ensure objective text starts completely transparent
         if (objectiveText != null) 
         {
             Color oc = objectiveText.color;
@@ -61,28 +72,34 @@ public class OCDPanicTrigger : MonoBehaviour
 
         if (heartbeatAudio != null) heartbeatAudio.volume = 0;
 
+        // ---> NEW: Try to grab the effects from the assigned Volume Profile
+        if (globalVolume != null && globalVolume.profile != null)
+        {
+            globalVolume.profile.TryGet(out chromaticAberration);
+            globalVolume.profile.TryGet(out lensDistortion);
+
+            // Ensure they start completely turned off
+            if (chromaticAberration != null) chromaticAberration.intensity.value = 0f;
+            if (lensDistortion != null) lensDistortion.intensity.value = 0f;
+        }
+
         StartCoroutine(PanicSequence());
     }
 
     private IEnumerator PanicSequence()
     {
-        // 0. LOCK PLAYER MOVEMENT
         foreach (var script in movementScripts)
         {
             if (script != null) script.enabled = false;
         }
 
-        // 1. Wait for the player to wake up
         yield return new WaitForSeconds(initialDelay);
 
-        // 2. Start the heartbeat
         if (heartbeatAudio != null) heartbeatAudio.Play();
-
-        // 3. Play audio and start the independent subtitle coroutine
         if (voiceOverAudio != null) voiceOverAudio.Play();
+        
         StartCoroutine(PlaySubtitles());
 
-        // 4. Slowly fade in the darkness and the heartbeat volume
         float fadeDuration = 2.0f;
         float timer = 0;
 
@@ -103,14 +120,16 @@ public class OCDPanicTrigger : MonoBehaviour
                 heartbeatAudio.volume = Mathf.Lerp(0, 1f, progress);
             }
 
+            // ---> NEW: Fade in the visual distortion alongside the audio
+            if (chromaticAberration != null) chromaticAberration.intensity.value = Mathf.Lerp(0f, maxChromaticAberration, progress);
+            if (lensDistortion != null) lensDistortion.intensity.value = Mathf.Lerp(0f, maxLensDistortion, progress);
+
             yield return null; 
         }
 
-        // 5. Wait for the voiceover to completely finish talking
         float waitTime = voiceOverAudio != null ? voiceOverAudio.clip.length - fadeDuration : 2f;
         if (waitTime > 0) yield return new WaitForSeconds(waitTime);
 
-        // 6. UNLOCK PLAYER MOVEMENT
         if (subtitleText != null) subtitleText.text = "";
 
         foreach (var script in movementScripts)
@@ -120,7 +139,6 @@ public class OCDPanicTrigger : MonoBehaviour
 
         if (OCDGameManager.Instance != null) OCDGameManager.Instance.ShowProgressUI();
 
-        // 7. Slowly fade the darkness and heartbeat back out
         timer = 0;
         fadeDuration = 3.0f; 
 
@@ -141,13 +159,15 @@ public class OCDPanicTrigger : MonoBehaviour
                 heartbeatAudio.volume = Mathf.Lerp(1f, 0, progress);
             }
 
+            // ---> NEW: Fade the visual distortion back out to normal
+            if (chromaticAberration != null) chromaticAberration.intensity.value = Mathf.Lerp(maxChromaticAberration, 0f, progress);
+            if (lensDistortion != null) lensDistortion.intensity.value = Mathf.Lerp(maxLensDistortion, 0f, progress);
+
             yield return null;
         }
 
-        // 8. Turn off heartbeat completely
         if (heartbeatAudio != null) heartbeatAudio.Stop();
 
-        // ---> NEW: 9. Trigger the final objective UI sequence
         if (objectiveText != null)
         {
             StartCoroutine(FadeObjectiveUI());
@@ -165,13 +185,11 @@ public class OCDPanicTrigger : MonoBehaviour
         if (subtitleText != null) subtitleText.text = "";
     }
 
-    // ---> NEW COROUTINE: Handles the smooth fade in, hold, and fade out of the objective
     private IEnumerator FadeObjectiveUI()
     {
         float timer = 0f;
         Color c = objectiveText.color;
 
-        // Fade IN
         while (timer < objectiveFadeDuration)
         {
             timer += Time.deltaTime;
@@ -183,10 +201,8 @@ public class OCDPanicTrigger : MonoBehaviour
         c.a = 1f;
         objectiveText.color = c;
 
-        // Wait so the player can read it
         yield return new WaitForSeconds(objectiveStayDuration);
 
-        // Fade OUT
         timer = 0f;
         while (timer < objectiveFadeDuration)
         {

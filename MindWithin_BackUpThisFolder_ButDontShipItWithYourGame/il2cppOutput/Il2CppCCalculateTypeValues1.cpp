@@ -6070,7 +6070,7 @@ struct MotionMatrixPassData_tD23EBE377A70C4F461EF020170751D057FB22229  : public 
 struct U3CU3Ec_t28C7FDE5C1BDC2484F9D3E43A13830C0CA48A80B  : public RuntimeObject
 {
 };
-struct U3CPanicSequenceU3Ed__14_tB7EF3F94CA09A74A39D542F0BB481C3451B05214  : public RuntimeObject
+struct U3CPanicSequenceU3Ed__19_t5048B9F209F1D42870FA94B2312A35050F36EB4D  : public RuntimeObject
 {
 	int32_t ___U3CU3E1__state;
 	RuntimeObject* ___U3CU3E2__current;
@@ -6078,7 +6078,7 @@ struct U3CPanicSequenceU3Ed__14_tB7EF3F94CA09A74A39D542F0BB481C3451B05214  : pub
 	float ___U3CfadeDurationU3E5__2;
 	float ___U3CtimerU3E5__3;
 };
-struct U3CPlaySubtitlesU3Ed__15_tB47CC3FF8737DFD880AAAE2A0C36A3A62E82A00B  : public RuntimeObject
+struct U3CPlaySubtitlesU3Ed__20_t9EEB52FD91A8FA5C57DB5E5D3767CE70F8B44452  : public RuntimeObject
 {
 	int32_t ___U3CU3E1__state;
 	RuntimeObject* ___U3CU3E2__current;
@@ -6232,7 +6232,7 @@ struct PermissionRequest_t28302A753467DBBF4257BD21D69004AAA459FBCE  : public Run
 	UnityEvent_1_tC9859540CF1468306CAB6D758C0A0D95DBCEC257* ___onPermissionGranted;
 	UnityEvent_1_tC9859540CF1468306CAB6D758C0A0D95DBCEC257* ___onPermissionDenied;
 };
-struct U3CPlayDialogueAndWaitU3Ed__26_t28FA48AA496721F5929D0166F7468F8656CA976B  : public RuntimeObject
+struct U3CPlayDialogueAndWaitU3Ed__31_tF4AE3C2583BCCBC7278A392D8A8AC13D9BAB9BB8  : public RuntimeObject
 {
 	int32_t ___U3CU3E1__state;
 	RuntimeObject* ___U3CU3E2__current;
@@ -35562,7 +35562,7 @@ struct U3CEndingSequenceU3Ed__16_tEABFFA2DBE9D84DBC45C23F81E4663A0DE2B7320  : pu
 	float ___U3CtimerU3E5__4;
 	Color_tD001788D726C3A7F1379BEED0260B9591F440C1F ___U3CcU3E5__5;
 };
-struct U3CFadeObjectiveUIU3Ed__16_t329DBBE75A86958EC267629263FCB879CEB21F05  : public RuntimeObject
+struct U3CFadeObjectiveUIU3Ed__21_tD30A9334BD7C1C8ED6E203B4CA782A4A90BB95EE  : public RuntimeObject
 {
 	int32_t ___U3CU3E1__state;
 	RuntimeObject* ___U3CU3E2__current;
@@ -55434,6 +55434,11 @@ struct OCDPanicTrigger_t4C6ECA1BC0E9FAA8684A50CADE83DC864F58C324  : public MonoB
 	SubtitleLineU5BU5D_tBCDF00B728AE363DBC5224979CC0F1C13C3AC65D* ___dialogueLines;
 	float ___initialDelay;
 	float ___maxDarkness;
+	Volume_t7CAAEA22D7F13A50FAE114DE7A6986FEAC837377* ___globalVolume;
+	float ___maxChromaticAberration;
+	float ___maxLensDistortion;
+	ChromaticAberration_t84EAB576773C3AD4DE77A13952B487F9DA10DA9F* ___chromaticAberration;
+	LensDistortion_t54FF310512B37DD2D9DBEEF9DA9DDF1F0A2082C6* ___lensDistortion;
 	TMP_Text_tE8D677872D43AD4B2AAF0D6101692A17D0B251A9* ___objectiveText;
 	String_t* ___objectiveString;
 	float ___objectiveFadeDuration;
@@ -55533,8 +55538,13 @@ struct PhoneAlarmController_t5B3E356B87C918E3463F9AB6A98228E213E5B2FE  : public 
 	GameObject_t76FEDD663AB33C991A9C9A23129337651094216F* ___phoneScreenLight;
 	GameObject_t76FEDD663AB33C991A9C9A23129337651094216F* ___uiPromptCanvas;
 	GameObject_t76FEDD663AB33C991A9C9A23129337651094216F* ___photoPromptCanvas;
+	TMP_Text_tE8D677872D43AD4B2AAF0D6101692A17D0B251A9* ___photoPromptText;
 	TMP_Text_tE8D677872D43AD4B2AAF0D6101692A17D0B251A9* ___subtitleDisplay;
 	AudioSource_t871AC2272F896738252F04EE949AEF5B241D3299* ___voiceOverAudioSource;
+	String_t* ___openGalleryPrompt;
+	String_t* ___nextPhotoPrompt;
+	String_t* ___closePhonePrompt;
+	String_t* ___switchOnPhonePrompt;
 	PhotoClueU5BU5D_tF83EE2125F3DD74260C43E1B264589A5E761E22F* ___reassurancePhotos;
 	float ___timeBeforeAlarm;
 	float ___lookThreshold;
@@ -70648,11 +70658,11 @@ const Il2CppTypeDefinitionSizes g_typeDefinitionSize8962 = { sizeof(OCDItemHighl
 IL2CPP_EXTERN_C_CONST Il2CppTypeDefinitionSizes g_typeDefinitionSize8963;
 const Il2CppTypeDefinitionSizes g_typeDefinitionSize8963 = { sizeof(SubtitleLine_tB83F56A096BA1DC8C4C77B0ADBD70C33FA264588)+ sizeof(RuntimeObject), sizeof(SubtitleLine_tB83F56A096BA1DC8C4C77B0ADBD70C33FA264588_marshaled_pinvoke), 0, 0 };
 IL2CPP_EXTERN_C_CONST Il2CppTypeDefinitionSizes g_typeDefinitionSize8964;
-const Il2CppTypeDefinitionSizes g_typeDefinitionSize8964 = { sizeof(U3CFadeObjectiveUIU3Ed__16_t329DBBE75A86958EC267629263FCB879CEB21F05), -1, 0, 0 };
+const Il2CppTypeDefinitionSizes g_typeDefinitionSize8964 = { sizeof(U3CFadeObjectiveUIU3Ed__21_tD30A9334BD7C1C8ED6E203B4CA782A4A90BB95EE), -1, 0, 0 };
 IL2CPP_EXTERN_C_CONST Il2CppTypeDefinitionSizes g_typeDefinitionSize8965;
-const Il2CppTypeDefinitionSizes g_typeDefinitionSize8965 = { sizeof(U3CPanicSequenceU3Ed__14_tB7EF3F94CA09A74A39D542F0BB481C3451B05214), -1, 0, 0 };
+const Il2CppTypeDefinitionSizes g_typeDefinitionSize8965 = { sizeof(U3CPanicSequenceU3Ed__19_t5048B9F209F1D42870FA94B2312A35050F36EB4D), -1, 0, 0 };
 IL2CPP_EXTERN_C_CONST Il2CppTypeDefinitionSizes g_typeDefinitionSize8966;
-const Il2CppTypeDefinitionSizes g_typeDefinitionSize8966 = { sizeof(U3CPlaySubtitlesU3Ed__15_tB47CC3FF8737DFD880AAAE2A0C36A3A62E82A00B), -1, 0, 0 };
+const Il2CppTypeDefinitionSizes g_typeDefinitionSize8966 = { sizeof(U3CPlaySubtitlesU3Ed__20_t9EEB52FD91A8FA5C57DB5E5D3767CE70F8B44452), -1, 0, 0 };
 IL2CPP_EXTERN_C_CONST Il2CppTypeDefinitionSizes g_typeDefinitionSize8967;
 const Il2CppTypeDefinitionSizes g_typeDefinitionSize8967 = { sizeof(OCDPanicTrigger_t4C6ECA1BC0E9FAA8684A50CADE83DC864F58C324), -1, 0, 0 };
 IL2CPP_EXTERN_C_CONST Il2CppTypeDefinitionSizes g_typeDefinitionSize8968;
@@ -70664,7 +70674,7 @@ const Il2CppTypeDefinitionSizes g_typeDefinitionSize8970 = { sizeof(OCDSocketVal
 IL2CPP_EXTERN_C_CONST Il2CppTypeDefinitionSizes g_typeDefinitionSize8971;
 const Il2CppTypeDefinitionSizes g_typeDefinitionSize8971 = { sizeof(PauseMenuManager_t677883EF3DF86C12B8D82A44093A41D28634AE0B), -1, 0, 0 };
 IL2CPP_EXTERN_C_CONST Il2CppTypeDefinitionSizes g_typeDefinitionSize8972;
-const Il2CppTypeDefinitionSizes g_typeDefinitionSize8972 = { sizeof(U3CPlayDialogueAndWaitU3Ed__26_t28FA48AA496721F5929D0166F7468F8656CA976B), -1, 0, 0 };
+const Il2CppTypeDefinitionSizes g_typeDefinitionSize8972 = { sizeof(U3CPlayDialogueAndWaitU3Ed__31_tF4AE3C2583BCCBC7278A392D8A8AC13D9BAB9BB8), -1, 0, 0 };
 IL2CPP_EXTERN_C_CONST Il2CppTypeDefinitionSizes g_typeDefinitionSize8973;
 const Il2CppTypeDefinitionSizes g_typeDefinitionSize8973 = { sizeof(PhoneAlarmController_t5B3E356B87C918E3463F9AB6A98228E213E5B2FE), -1, 0, 0 };
 IL2CPP_EXTERN_C_CONST Il2CppTypeDefinitionSizes g_typeDefinitionSize8974;

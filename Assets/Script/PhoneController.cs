@@ -11,9 +11,17 @@ public class PhoneAlarmController : MonoBehaviour
     public GameObject uiPromptCanvas; 
     
     [Header("Reassurance Gallery UI")]
-    public GameObject photoPromptCanvas; 
+    public GameObject photoPromptCanvas;
+    public TMP_Text photoPromptText; 
     public TMP_Text subtitleDisplay;
     public AudioSource voiceOverAudioSource;
+
+    [Header("Prompt Messages")]
+    public string openGalleryPrompt = "Press 'Trigger' to view photos";
+    public string nextPhotoPrompt = "Press 'Trigger' for next photo";
+    public string closePhonePrompt = "Press 'Trigger' to switch off phone";
+    // ---> NEW: Prompt for when the phone is turned off after viewing the gallery
+    public string switchOnPhonePrompt = "Press 'Trigger' to switch on phone";
 
     [Tooltip("Add your photo canvases, subtitles, and voiceovers here in order.")]
     public PhotoClue[] reassurancePhotos; 
@@ -37,10 +45,7 @@ public class PhoneAlarmController : MonoBehaviour
     
     private int currentPhotoIndex = -1; 
     
-    // NEW: Tracks if a photo's dialogue is currently running to block input
     private bool isDialoguePlaying = false;
-    
-    // NEW: Remembers which photos have already been viewed
     private bool[] hasViewedPhoto;
 
     void Start()
@@ -49,7 +54,8 @@ public class PhoneAlarmController : MonoBehaviour
         if (photoPromptCanvas != null) photoPromptCanvas.SetActive(false);
         if (subtitleDisplay != null) subtitleDisplay.text = "";
         
-        // Initialize the memory array to match the number of photos you have
+        if (photoPromptText != null) photoPromptText.text = openGalleryPrompt;
+        
         hasViewedPhoto = new bool[reassurancePhotos.Length];
         
         foreach (PhotoClue clue in reassurancePhotos)
@@ -109,6 +115,15 @@ public class PhoneAlarmController : MonoBehaviour
             if (uiPromptCanvas != null) uiPromptCanvas.SetActive(false);
             if (photoPromptCanvas != null) photoPromptCanvas.SetActive(isLookingAtPhone);
         }
+        else if (alarmDismissed && currentPhotoIndex >= 0)
+        {
+            if (uiPromptCanvas != null) uiPromptCanvas.SetActive(false);
+            
+            if (photoPromptCanvas != null) 
+            {
+                photoPromptCanvas.SetActive(isLookingAtPhone && !isDialoguePlaying);
+            }
+        }
         else
         {
             if (uiPromptCanvas != null) uiPromptCanvas.SetActive(false);
@@ -118,7 +133,6 @@ public class PhoneAlarmController : MonoBehaviour
 
     private void OnButtonPressed(InputAction.CallbackContext context)
     {
-        // NEW: If the dialogue is playing, completely ignore the button press!
         if (isDialoguePlaying) return;
 
         if (isLookingAtPhone || currentPhotoIndex != -1)
@@ -145,7 +159,6 @@ public class PhoneAlarmController : MonoBehaviour
 
     private void CyclePhotos()
     {
-        // 1. Hide the current photo
         if (currentPhotoIndex >= 0 && currentPhotoIndex < reassurancePhotos.Length)
         {
             if (reassurancePhotos[currentPhotoIndex].photoCanvas != null)
@@ -154,13 +167,10 @@ public class PhoneAlarmController : MonoBehaviour
             }
         }
 
-        // 2. Move to the next photo
         currentPhotoIndex++;
 
-        // 3. Did we run out of photos?
         if (currentPhotoIndex < reassurancePhotos.Length)
         {
-            // Show the next photo visually
             if (reassurancePhotos[currentPhotoIndex].photoCanvas != null)
             {
                 reassurancePhotos[currentPhotoIndex].photoCanvas.SetActive(true);
@@ -168,40 +178,37 @@ public class PhoneAlarmController : MonoBehaviour
 
             if (phoneScreenLight != null) phoneScreenLight.SetActive(true);
 
-            // NEW: Check if this is the FIRST time seeing this photo
             if (!hasViewedPhoto[currentPhotoIndex])
             {
-                // Mark it as viewed so it never plays again
                 hasViewedPhoto[currentPhotoIndex] = true;
-                
-                // Start the master coroutine that locks input and plays the sequence
                 StartCoroutine(PlayDialogueAndWait(currentPhotoIndex));
             }
             else
             {
-                // If they've already seen it, ensure no audio or text is lingering
                 if (subtitleDisplay != null) subtitleDisplay.text = "";
                 if (voiceOverAudioSource != null) voiceOverAudioSource.Stop();
+                
+                UpdatePromptText(currentPhotoIndex);
             }
         }
         else
         {
-            // Reached the end of the list. Close the gallery.
+            // The player has clicked past the final photo and turned off the phone
             currentPhotoIndex = -1;
             
             if (phoneScreenLight != null) phoneScreenLight.SetActive(false);
             if (subtitleDisplay != null) subtitleDisplay.text = "";
             if (voiceOverAudioSource != null) voiceOverAudioSource.Stop();
+            
+            // ---> NEW: Set the prompt to tell them how to turn it back on
+            if (photoPromptText != null) photoPromptText.text = switchOnPhonePrompt;
         }
     }
 
-    // NEW: Unified Coroutine that handles audio, subtitles, and input locking
     private IEnumerator PlayDialogueAndWait(int index)
     {
-        // 1. Lock the player's input immediately
         isDialoguePlaying = true;
 
-        // 2. Start the audio
         if (voiceOverAudioSource != null && reassurancePhotos[index].voiceOver != null)
         {
             voiceOverAudioSource.Stop();
@@ -210,7 +217,6 @@ public class PhoneAlarmController : MonoBehaviour
 
         SubtitleSequence[] lines = reassurancePhotos[index].subtitleLines;
 
-        // 3. Play the subtitles if they exist
         if (lines != null && lines.Length > 0)
         {
             foreach (SubtitleSequence line in lines)
@@ -221,13 +227,29 @@ public class PhoneAlarmController : MonoBehaviour
         }
         else if (reassurancePhotos[index].voiceOver != null)
         {
-            // Failsafe: If you forgot to type subtitles, just wait for the audio clip to finish
             yield return new WaitForSeconds(reassurancePhotos[index].voiceOver.length);
         }
 
-        // 4. Clean up and unlock input
         if (subtitleDisplay != null) subtitleDisplay.text = "";
+        
+        UpdatePromptText(index);
+
         isDialoguePlaying = false; 
+    }
+
+    private void UpdatePromptText(int index)
+    {
+        if (photoPromptText != null)
+        {
+            if (index == reassurancePhotos.Length - 1)
+            {
+                photoPromptText.text = closePhonePrompt;
+            }
+            else
+            {
+                photoPromptText.text = nextPhotoPrompt;
+            }
+        }
     }
 }
 

@@ -339,6 +339,7 @@
           {
             "name": "LightProbes",
             "scenes": [
+              "Assets/Scenes/AfterParty.unity",
               "Assets/Scenes/ConcertScene.unity",
               "Assets/Scenes/MinigameConcertScene.unity",
               "Assets/Scenes/NightBeforeScene.unity",
@@ -349,7 +350,9 @@
           },
           {
             "name": "LightingSettings",
-            "scenes": [],
+            "scenes": [
+              "Assets/Scenes/AfterParty.unity"
+            ],
             "dependencyType": 0,
             "icon": null
           },

@@ -42575,7 +42575,7 @@ IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR float OpenXRRestarter_get_TimeBet
 		return L_0;
 	}
 }
-// Method Definition Index: 87663
+// Method Definition Index: 87664
 IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR XRGeneralSettings_t8F8D096944606B5AD845D010706BF7094ADEC8CE* XRGeneralSettings_get_Instance_m9F222F982E62E066E119754858D8E73CFE42048C_inline (const RuntimeMethod* method) 
 {
 	static bool s_Il2CppMethodInitialized;
@@ -42591,7 +42591,7 @@ IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR XRGeneralSettings_t8F8D096944606B
 		return L_0;
 	}
 }
-// Method Definition Index: 87661
+// Method Definition Index: 87662
 IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR XRManagerSettings_t7923B66EB3FEE58C7B9F85FF61749B774D3B9E52* XRGeneralSettings_get_Manager_m112FEB4E6DFB7B5F5C4A2DEC4E975CF2EBD51B42_inline (XRGeneralSettings_t8F8D096944606B5AD845D010706BF7094ADEC8CE* __this, const RuntimeMethod* method) 
 {
 	{
@@ -42600,7 +42600,7 @@ IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR XRManagerSettings_t7923B66EB3FEE5
 		return L_0;
 	}
 }
-// Method Definition Index: 87704
+// Method Definition Index: 87705
 IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR XRLoader_t80B1B1934C40561C5352ABC95D567DC2A7C9C976* XRManagerSettings_get_activeLoader_mFB3B679005792D3DF871EAA7120DD86DCA1D5DEA_inline (XRManagerSettings_t7923B66EB3FEE58C7B9F85FF61749B774D3B9E52* __this, const RuntimeMethod* method) 
 {
 	{
@@ -45439,7 +45439,7 @@ IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR uint64_t XrUuid_get_dataPart2_m30
 		return L_0;
 	}
 }
-// Method Definition Index: 80529
+// Method Definition Index: 80530
 IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR Texture_t791CBB51219779964E0E8A2ED7C1AA5F92A4A700* TexturesExtension_get_LeftTexture_mFBDAC6C5F3B74AD77A0759FA479F40DEF11F510A_inline (TexturesExtension_tDD606F9105098773605C2881E410842014684B25* __this, const RuntimeMethod* method) 
 {
 	{
@@ -45448,7 +45448,7 @@ IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR Texture_t791CBB51219779964E0E8A2E
 		return L_0;
 	}
 }
-// Method Definition Index: 80153
+// Method Definition Index: 80154
 IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR LayerData_tC074CAFB1920401B787CE941C66D1E51A221D325* CompositionLayer_get_LayerData_m92E3575340A60FDA69DDDE1C96C9C1D54143C9E4_inline (CompositionLayer_tB17BA358F28A0A8FD522860354804EB94C636ADA* __this, const RuntimeMethod* method) 
 {
 	{
@@ -45457,7 +45457,7 @@ IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR LayerData_tC074CAFB1920401B787CE9
 		return L_0;
 	}
 }
-// Method Definition Index: 80539
+// Method Definition Index: 80540
 IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR int32_t TexturesExtension_get_sourceTexture_m1D682B331FD171E6AF56985C292302AF8568B1F3_inline (TexturesExtension_tDD606F9105098773605C2881E410842014684B25* __this, const RuntimeMethod* method) 
 {
 	{
@@ -45466,7 +45466,7 @@ IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR int32_t TexturesExtension_get_sou
 		return L_0;
 	}
 }
-// Method Definition Index: 80541
+// Method Definition Index: 80542
 IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR Vector2_t1FD6F485C871E832B347AB2DC8CBA08B739D8DF7 TexturesExtension_get_Resolution_m95F342919229A7F0C103F442EBA8A120A5D005B4_inline (TexturesExtension_tDD606F9105098773605C2881E410842014684B25* __this, const RuntimeMethod* method) 
 {
 	{
@@ -45475,7 +45475,7 @@ IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR Vector2_t1FD6F485C871E832B347AB2D
 		return L_0;
 	}
 }
-// Method Definition Index: 80551
+// Method Definition Index: 80552
 IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR bool TexturesExtension_get_CropToAspect_m14041C31A29762EB6AEC92CEDEAC4C7774ACD2C6_inline (TexturesExtension_tDD606F9105098773605C2881E410842014684B25* __this, const RuntimeMethod* method) 
 {
 	{
@@ -45484,7 +45484,7 @@ IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR bool TexturesExtension_get_CropTo
 		return L_0;
 	}
 }
-// Method Definition Index: 80452
+// Method Definition Index: 80453
 IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR bool CylinderLayerData_get_ApplyTransformScale_m70392A3797AA107502A8C910341A3FDDEB5D25D8_inline (CylinderLayerData_t2CBE6EC85107126C64C6877037AD89444141F3AE* __this, const RuntimeMethod* method) 
 {
 	{
@@ -45493,7 +45493,7 @@ IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR bool CylinderLayerData_get_ApplyT
 		return L_0;
 	}
 }
-// Method Definition Index: 80442
+// Method Definition Index: 80443
 IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR float CylinderLayerData_get_Radius_m9C25D6762DF885B93F7E4938A7D99E9D30219806_inline (CylinderLayerData_t2CBE6EC85107126C64C6877037AD89444141F3AE* __this, const RuntimeMethod* method) 
 {
 	{
@@ -45502,7 +45502,7 @@ IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR float CylinderLayerData_get_Radiu
 		return L_0;
 	}
 }
-// Method Definition Index: 80450
+// Method Definition Index: 80451
 IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR float CylinderLayerData_get_AspectRatio_m1B10CE71B57CB7851552DCF61F5565D538E52B2B_inline (CylinderLayerData_t2CBE6EC85107126C64C6877037AD89444141F3AE* __this, const RuntimeMethod* method) 
 {
 	{
@@ -45511,7 +45511,7 @@ IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR float CylinderLayerData_get_Aspec
 		return L_0;
 	}
 }
-// Method Definition Index: 80537
+// Method Definition Index: 80538
 IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR bool TexturesExtension_get_CustomRects_m4692A298C1688F1D6CE1052E97640AED0E843DD4_inline (TexturesExtension_tDD606F9105098773605C2881E410842014684B25* __this, const RuntimeMethod* method) 
 {
 	{
@@ -45868,7 +45868,7 @@ IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR int32_t ReadOnlyArray_1_get_Count
 		return L_0;
 	}
 }
-// Method Definition Index: 85459
+// Method Definition Index: 85460
 IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR int32_t HashSet_1_get_Count_m41CC85EEB7855CEFA3BC7A32F115387939318ED3_gshared_inline (HashSet_1_t2F33BEB06EEA4A872E2FAF464382422AA39AE885* __this, const RuntimeMethod* method) 
 {
 	{
@@ -45876,7 +45876,7 @@ IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR int32_t HashSet_1_get_Count_m41CC
 		return L_0;
 	}
 }
-// Method Definition Index: 85502
+// Method Definition Index: 85503
 IL2CPP_MANAGED_FORCE_INLINE IL2CPP_METHOD_ATTR RuntimeObject* Enumerator_get_Current_m139A176CD271A0532D75BE08DA7831C8C45CE28F_gshared_inline (Enumerator_t72556E98D7DDBE118A973D782D523D15A96461C8* __this, const RuntimeMethod* method) 
 {
 	{
